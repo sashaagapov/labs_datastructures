@@ -1,4 +1,4 @@
-﻿//sasha agapov IPZ - 11 lab1_version1
+﻿//sasha agapov IPZ - 11 lab1_version3
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,76 +9,119 @@ namespace Lab1_Search
     {
         static void Main(string[] args)
         {
-            // Створюємо великий масив даних для тесту (1 мільйон елементів)
-            // Менше ставити немає сенсу, бо на малих даних час буде 0 тіків
-            int size = 1000000;
-            int[] arr = new int[size];
+            Console.OutputEncoding = System.Text.Encoding.UTF8; // Щоб коректно відображалась кирилиця
+
+            // --- 1. ПІДГОТОВКА ДАНИХ ---
+            Console.WriteLine("=== Лабораторна робота №1: Алгоритми пошуку ===");
+            Console.Write("Введіть кількість елементів масиву (наприклад, 100000): ");
             
-            // Заповнюємо масив відсортованими числами (парними), щоб працював бінарний пошук
-            for (int i = 0; i < size; i++)
+            string? inputSize = Console.ReadLine();
+            int n;
+            // Якщо натиснути Enter без числа, буде 100 000
+            if (string.IsNullOrEmpty(inputSize))
+                n = 100000;
+            else
+                if (!int.TryParse(inputSize, out n)) n = 100000;
+
+            // Створюємо масив
+            int[] arr = new int[n];
+
+            // ЗАПОВНЕННЯ: Просто числа по порядку 0, 1, 2, 3...
+            // Це гарантує, що якщо ви введете число '500', воно там ТОЧНО буде.
+            for (int i = 0; i < n; i++)
             {
-                arr[i] = i * 2;
+                arr[i] = i; 
             }
 
-            // Робимо копію у вигляді зв'язного списку для порівняння
+            // Список для порівняння
             LinkedList<int> linkedList = new LinkedList<int>(arr);
 
+            Console.WriteLine("\n[OK] Масив згенеровано.");
+            Console.WriteLine($"В масиві є числа від 0 до {n - 1}");
+            Console.WriteLine("---------------------------------------------");
+
+            // --- 2. ГОЛОВНЕ МЕНЮ ---
             while (true)
             {
-                Console.WriteLine("\n------------------------------------------------");
-                Console.Write("Введіть число для пошуку (наприклад, 888888): ");
-                string input = Console.ReadLine();
-                
-                if (!int.TryParse(input, out int target))
+                Console.Write("\nВведіть число для пошуку (або 'exit' для виходу): ");
+                string? targetInput = Console.ReadLine();
+
+                if (targetInput == "exit" || string.IsNullOrEmpty(targetInput)) break;
+
+                if (!int.TryParse(targetInput, out int x))
                 {
-                    Console.WriteLine("Це не число!");
+                    Console.WriteLine("Помилка! Введіть ціле число.");
                     continue;
                 }
 
-                Console.WriteLine("\nПочинаємо тестування...\n");
+                // Перевірка на дурня, щоб ви розуміли, чому може не знайти
+                if (x < 0 || x >= n)
+                {
+                    Console.WriteLine($"УВАГА: Ви шукаєте число {x}, але масив містить тільки числа від 0 до {n-1}.");
+                    Console.WriteLine("Алгоритми видадуть 'Не знайдено', і це правильно.");
+                }
 
-                // 1. Звичайний перебір (Array)
-                MeasureTime("Лінійний пошук (Array)", () => LinearSearch(arr, target));
+                Console.WriteLine("\nОберіть метод:");
+                Console.WriteLine("1. Лінійний пошук");
+                Console.WriteLine("2. Пошук з бар'єром");
+                Console.WriteLine("3. Бінарний пошук");
+                Console.WriteLine("4. Золотий перетин");
+                Console.WriteLine("5. Пошук у LinkedList");
+                Console.WriteLine("6. >> ПОРІВНЯТИ ВСІ (Тест ефективності) <<");
+                
+                Console.Write("Ваш вибір: ");
+                string? choice = Console.ReadLine();
 
-                // 2. Пошук з бар'єром
-                // Для бар'єра треба масив на 1 елемент більший. 
-                // Створюємо його тут, щоб не включати час копіювання у час пошуку (хоча в реальності це мінус методу)
-                int[] arrWithBarrier = new int[size + 1];
-                Array.Copy(arr, arrWithBarrier, size);
-                MeasureTime("Пошук з бар'єром", () => BarrierSearch(arrWithBarrier, target));
+                Console.WriteLine("\n--- Результати ---");
 
-                // 3. Бінарний пошук
-                MeasureTime("Бінарний пошук", () => BinarySearch(arr, target));
+                // Запуск обраного варіанту
+                if (choice == "1") RunTest("Лінійний пошук", () => LinearSearch(arr, x));
+                else if (choice == "2")
+                {
+                    // Для бар'єра створюємо копію масиву + 1 елемент
+                    int[] bArr = new int[n + 1];
+                    Array.Copy(arr, bArr, n);
+                    RunTest("Пошук з бар'єром", () => BarrierSearch(bArr, x));
+                }
+                else if (choice == "3") RunTest("Бінарний пошук", () => BinarySearch(arr, x));
+                else if (choice == "4") RunTest("Золотий перетин", () => GoldenSectionSearch(arr, x));
+                else if (choice == "5") RunTest("LinkedList пошук", () => LinkedListSearch(linkedList, x));
+                else if (choice == "6")
+                {
+                    // ЗАПУСК ВСІХ ДЛЯ ЗВІТУ
+                    RunTest("Лінійний (Array)", () => LinearSearch(arr, x));
 
-                // 4. Золотий перетин
-                MeasureTime("Золотий перетин", () => GoldenSectionSearch(arr, target));
+                    int[] bArr = new int[n + 1];
+                    Array.Copy(arr, bArr, n);
+                    RunTest("Бар'єрний      ", () => BarrierSearch(bArr, x));
 
-                // 5. Пошук у списку (LinkedList)
-                MeasureTime("Лінійний пошук (LinkedList)", () => LinkedListSearch(linkedList, target));
-
-                Console.WriteLine("\nНатисніть Enter, щоб спробувати інше число...");
-                Console.ReadLine();
+                    RunTest("Бінарний       ", () => BinarySearch(arr, x));
+                    RunTest("Золотий перетин", () => GoldenSectionSearch(arr, x));
+                    RunTest("LinkedList     ", () => LinkedListSearch(linkedList, x));
+                }
+                else
+                {
+                    Console.WriteLine("Невірний вибір.");
+                }
+                Console.WriteLine("------------------");
             }
         }
 
-        // Метод для заміру часу, щоб не писати сто разів Stopwatch
-        static void MeasureTime(string name, Func<int> searchFunc)
+        // Метод для запуску і заміру часу
+        static void RunTest(string algorithmName, Func<int> algorithm)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            
-            int index = searchFunc(); // Викликаємо пошук
-            
+            int index = algorithm();
             sw.Stop();
 
-            // Виводимо результат красиво
-            string resultText = index != -1 ? $"Знайдено (індекс {index})" : "Не знайдено";
-            Console.WriteLine($"{name,-30} | Час: {sw.ElapsedTicks, 6} тіків | {resultText}");
+            string status = (index != -1) ? $"Знайдено [індекс {index}]" : "Не знайдено";
+            // Виводимо тіки (найточніше)
+            Console.WriteLine($"{algorithmName,-20} | Час: {sw.ElapsedTicks, 5} тіків | {status}");
         }
 
         // --- АЛГОРИТМИ ---
 
-        // 1. Простий лінійний пошук
         static int LinearSearch(int[] a, int x)
         {
             for (int i = 0; i < a.Length; i++)
@@ -88,80 +131,52 @@ namespace Lab1_Search
             return -1;
         }
 
-        // 2. Пошук з бар'єром
         static int BarrierSearch(int[] a, int x)
         {
-            int n = a.Length - 1; // Останній реальний індекс (бо ми додали +1 місце)
+            int n = a.Length - 1;
+            if (a[n - 1] == x) return n - 1; // Якщо шукане - останнє число
             
-            // Якщо шуканий елемент вже в кінці - повертаємо його
-            if (a[n - 1] == x) return n - 1;
-
-            a[n] = x; // Ставимо бар'єр в кінець
+            a[n] = x; // Ставимо бар'єр
             int i = 0;
+            while (a[i] != x) i++;
             
-            // Цикл без перевірки i < n, бо ми точно знайдемо x (хоча б бар'єр)
-            while (a[i] != x)
-            {
-                i++;
-            }
-
-            // Якщо індекс менше n, значить знайшли реальний елемент, а не бар'єр
             if (i < n) return i;
-            
             return -1;
         }
 
-        // 3. Бінарний пошук (стандартний)
         static int BinarySearch(int[] a, int x)
         {
-            int left = 0;
-            int right = a.Length - 1;
-
-            while (left <= right)
+            int L = 0, R = a.Length - 1;
+            while (L <= R)
             {
-                int mid = (left + right) / 2;
-
-                if (a[mid] == x) return mid;
-                
-                if (a[mid] < x)
-                    left = mid + 1;
-                else
-                    right = mid - 1;
+                int m = (L + R) / 2;
+                if (a[m] == x) return m;
+                if (a[m] < x) L = m + 1;
+                else R = m - 1;
             }
             return -1;
         }
 
-        // 4. Пошук золотим перетином
         static int GoldenSectionSearch(int[] a, int x)
         {
-            int left = 0;
-            int right = a.Length - 1;
-            double phi = 0.618; // Пропорція золотого перетину
-
-            while (left <= right)
+            int L = 0, R = a.Length - 1;
+            double phi = 0.618;
+            while (L <= R)
             {
-                // Формула зміщення: ділимо відрізок не навпіл, а за пропорцією
-                int mid = left + (int)((right - left) * phi);
-                
-                // Перевірка, щоб не вийти за межі (іноді буває через округлення)
-                if (mid >= a.Length) mid = a.Length - 1;
+                int m = L + (int)((R - L) * phi);
+                if (m >= a.Length) m = a.Length - 1;
 
-                if (a[mid] == x) return mid;
-
-                if (a[mid] < x)
-                    left = mid + 1;
-                else
-                    right = mid - 1;
+                if (a[m] == x) return m;
+                if (a[m] < x) L = m + 1;
+                else R = m - 1;
             }
             return -1;
         }
 
-        // 5. Пошук у зв'язному списку
         static int LinkedListSearch(LinkedList<int> list, int x)
         {
             int i = 0;
-            // У LinkedList не можна звернутись по індексу [i], треба йти по порядку
-            foreach (var item in list)
+            foreach (int item in list)
             {
                 if (item == x) return i;
                 i++;

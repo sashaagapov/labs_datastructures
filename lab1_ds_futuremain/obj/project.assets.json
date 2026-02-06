@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/agapov/data_structures/labs_datastructures/lab1_ds_testing/lab1_ds_testing.csproj",
+      "projectUniqueName": "/Users/agapov/data_structures/labs_datastructures/lab1_ds_futuremain/lab1_ds_testing.csproj",
       "projectName": "lab1_ds_testing",
-      "projectPath": "/Users/agapov/data_structures/labs_datastructures/lab1_ds_testing/lab1_ds_testing.csproj",
+      "projectPath": "/Users/agapov/data_structures/labs_datastructures/lab1_ds_futuremain/lab1_ds_testing.csproj",
       "packagesPath": "/Users/agapov/.nuget/packages/",
-      "outputPath": "/Users/agapov/data_structures/labs_datastructures/lab1_ds_testing/obj/",
+      "outputPath": "/Users/agapov/data_structures/labs_datastructures/lab1_ds_futuremain/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/agapov/.nuget/NuGet/NuGet.Config"

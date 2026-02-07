@@ -10,6 +10,7 @@ namespace SearchAlgorithms
             Console.WriteLine("--------------------------------------------------------------------------------");
             Console.WriteLine("Дисципліна « Структури даних, аналіз і алгоритми комп'ютерної обробки інформації »");
             Console.WriteLine("Лабораторна робота номер 1,Агапов Олександр Олексійович,ІПЗ-11(1)");
+            Console.WriteLine("--------------------------------------------------------------------------------");
             // 1. ГЕНЕРАЦІЯ (робимо це один раз перед циклом)
             int n = 100000;
             int[] numbers = new int[n + 1]; // +1 для бар'єра
@@ -30,7 +31,7 @@ namespace SearchAlgorithms
 
                 // Перевірка на вихід
                 // ToLower() дозволяє писати і "Exit", і "EXIT", і "exit"
-                if (input.ToLower() == "exit" || input.ToLower() == "ексіт")
+                if (input.ToLower() == "exit" )
                 {
                     Console.WriteLine("Програма завершена.");
                     break; // Зупиняє цикл
@@ -91,45 +92,79 @@ namespace SearchAlgorithms
         static int LinearSearch(int[] a, int x, int n)
         {
             for (int i = 0; i < n; i++)
-                if (a[i] == x) return i;
+            {
+                if (a[i] == x)
+                {
+                    return i;
+                }
+            }
             return -1;
         }
 
         static int BarrierSearch(int[] a, int x, int n)
         {
-            if (n >= a.Length) return -1;
-            a[n] = x; 
+            if (n >= a.Length)
+            {
+                return -1;
+            }
+            a[n] = x;
             int i = 0;
-            while (a[i] != x) i++;
-            if (i == n) return -1;
+            while (a[i] != x)
+            {
+                i++;
+            }
+            if (i == n)
+            {
+                return -1;
+            }
             return i;
         }
 
         static int BinarySearch(int[] a, int x, int n)
         {
-            int left = 0, right = n - 1;
+            int left = 0;
+            int right = n - 1;
             while (left <= right)
             {
                 int mid = (left + right) / 2;
-                if (a[mid] == x) return mid;
-                if (x > a[mid]) left = mid + 1;
-                else right = mid - 1;
+                if (a[mid] == x)
+                {
+                    return mid;
+                }
+                if (x > a[mid])
+                {
+                    left = mid + 1;
+                }
+                else
+                {
+                    right = mid - 1;
+                }
             }
             return -1;
         }
 
         static int GoldenSectionSearch(int[] a, int x, int n)
         {
-            int left = 0, right = n - 1;
+            int left = 0;
+            int right = n - 1;
             double phi = 0.381966;
             while (left <= right)
             {
                 int mid = left + (int)((right - left) * phi);
-                if (a[mid] == x) return mid;
-                if (x > a[mid]) left = mid + 1;
-                else right = mid - 1;
+                if (a[mid] == x)
+                {
+                    return mid;
+                }
+                if (x > a[mid])
+                {
+                    left = mid + 1;
+                }
+                else
+                {
+                    right = mid - 1;
+                }
             }
             return -1;
         }
-    }
+}
 }

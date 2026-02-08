@@ -7,15 +7,14 @@ namespace SearchAlgorithms
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("--------------------------------------------------------------------------------");
-            Console.WriteLine("Дисципліна « Структури даних, аналіз і алгоритми комп'ютерної обробки інформації »");
-            Console.WriteLine("Лабораторна робота номер 1,Агапов Олександр Олексійович,ІПЗ-11(1)");
-            Console.WriteLine("--------------------------------------------------------------------------------");
+
+            Welcome.Subject();
+            Welcome.Student();
             // 1. ГЕНЕРАЦІЯ (робимо це один раз перед циклом)
             int n = 100000;
             int[] numbers = new int[n + 1]; // +1 для бар'єра
-            
-            for (int i = 0; i < n; i++) 
+
+            for (int i = 0; i < n; i++)
             {
                 numbers[i] = i;
             }
@@ -49,7 +48,20 @@ namespace SearchAlgorithms
             }
         }
 
-        // Я виніс запуск тестів в окремий метод, щоб Main був чистішим
+         class Welcome
+        {
+
+            public static void Subject()
+        {
+            Console.WriteLine("--------------------------------------------------------------------------------");
+            Console.WriteLine("Дисципліна « Структури даних, аналіз і алгоритми комп'ютерної обробки інформації »");
+        }
+        public static void Student()
+        {
+            Console.WriteLine("Лабораторна робота номер 1,Агапов Олександр Олексійович,ІПЗ-11(1)");
+            Console.WriteLine("--------------------------------------------------------------------------------");
+        }
+        }
         static void RunTests(int[] numbers, int target, int n)
         {
             Console.WriteLine($"   >>> Шукаємо число: {target}");

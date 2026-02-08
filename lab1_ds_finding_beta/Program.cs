@@ -14,10 +14,14 @@ namespace SearchAlgorithms
 
             // 1. ВИБІР РОЗМІРУ МАСИВУ
             int n = 0;
-            while (true)
+            bool isNumber = true;
+            while (isNumber)
             {
                 Console.Write("Введіть розмір масиву (наприклад, 100 або 100000): ");
-                if (int.TryParse(Console.ReadLine(), out n) && n > 0) break;
+                if (int.TryParse(Console.ReadLine(), out n) && n > 0)
+                {
+                    isNumber = false;
+                }
                 Console.WriteLine("Помилка: введіть ціле число більше 0.");
             }
 
@@ -30,7 +34,7 @@ namespace SearchAlgorithms
             Console.WriteLine("2. По порядку (0, 1, 2... n)");
             Console.WriteLine("3. Вручну з клавіатури");
             Console.Write("Ваш вибір (1-3): ");
-            
+
             string choice = Console.ReadLine();
             bool isSortedInitially = false; // Прапорець, чи відсортований масив від початку
 
@@ -143,7 +147,7 @@ namespace SearchAlgorithms
             Stopwatch sw = new Stopwatch();
 
             // 1. ЛІНІЙНІ ПОШУКИ (Завжди шукають в оригіналі)
-            sw.Restart();
+            sw.Start();
             int idxLin = LinearSearch(numbers, target, n);
             sw.Stop();
             PrintResult("Лінійний", idxLin, sw.Elapsed.TotalMilliseconds, "Оригінал");
@@ -163,7 +167,7 @@ namespace SearchAlgorithms
                 // Якщо масив вже відсортований (опція 2), не витрачаємо пам'ять на копію
                 // і час на зайві операції. Шукаємо прямо тут.
                 arrayForBinary = numbers;
-                noteBinary = "Оригінал"; 
+                noteBinary = "Оригінал";
             }
             else
             {

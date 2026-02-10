@@ -22,7 +22,10 @@ namespace SearchAlgorithms
                 {
                     isNumber = false;
                 }
-                Console.WriteLine("Помилка: введіть ціле число більше 0.");
+                else
+                {
+                    Console.WriteLine("Помилка: введіть ціле число більше 0.");
+                }
             }
 
             // Створюємо масив (+1 місце для бар'єра)
@@ -72,7 +75,7 @@ namespace SearchAlgorithms
 
             Console.WriteLine("\n--------------------------------------------------");
             Console.WriteLine("Масив готовий. Починаємо тестування.");
-
+            int target;
             // 4. НЕСКІНЧЕННИЙ ЦИКЛ ДЛЯ ПОШУКУ
             while (true)
             {
@@ -85,7 +88,7 @@ namespace SearchAlgorithms
                     break;
                 }
 
-                if (!int.TryParse(input, out int target))
+                if (!int.TryParse(input, out target))
                 {
                     Console.WriteLine("Помилка: це не число.");
                     continue;
@@ -150,18 +153,18 @@ namespace SearchAlgorithms
             sw.Start();
             int idxLin = LinearSearch(numbers, target, n);
             sw.Stop();
-            PrintResult("Лінійний", idxLin, sw.Elapsed.TotalMilliseconds, "Оригінал");
+            PrintResult("Лінійний", idxLin, sw.Elapsed.TotalMilliseconds, "Оригінал",0);
 
             sw.Restart();
             int idxBar = BarrierSearch(numbers, target, n);
             sw.Stop();
-            PrintResult("З бар'єром", idxBar, sw.Elapsed.TotalMilliseconds, "Оригінал");
+            PrintResult("З бар'єром", idxBar, sw.Elapsed.TotalMilliseconds, "Оригінал",0);
 
             // 2. БІНАРНІ ПОШУКИ
             // Тут визначаємо, який масив дати бінарному пошуку
             int[] arrayForBinary;
             string noteBinary;
-
+            double sortingTime = 0;
             if (isSortedInitially)
             {
                 // Якщо масив вже відсортований (опція 2), не витрачаємо пам'ять на копію
@@ -173,9 +176,12 @@ namespace SearchAlgorithms
             {
                 // Якщо масив був рандомний (опція 1 або 3), то для бінарного пошуку
                 // мусимо створити окрему відсортовану копію
+                sw.Restart();
                 arrayForBinary = new int[n + 1];
                 Array.Copy(numbers, arrayForBinary, n + 1);
                 QuickSort(arrayForBinary, 0, n - 1);
+                sw.Stop();
+                sortingTime = sw.Elapsed.TotalMilliseconds;
                 noteBinary = "Sorted Copy";
             }
 
@@ -183,12 +189,12 @@ namespace SearchAlgorithms
             sw.Restart();
             int idxBin = BinarySearch(arrayForBinary, target, n);
             sw.Stop();
-            PrintResult("Бінарний", idxBin, sw.Elapsed.TotalMilliseconds, noteBinary);
+            PrintResult("Бінарний", idxBin, sw.Elapsed.TotalMilliseconds, noteBinary,sortingTime);
 
             sw.Restart();
             int idxGold = GoldenSectionSearch(arrayForBinary, target, n);
             sw.Stop();
-            PrintResult("Золотий перетин", idxGold, sw.Elapsed.TotalMilliseconds, noteBinary);
+            PrintResult("Золотий перетин", idxGold, sw.Elapsed.TotalMilliseconds, noteBinary, sortingTime);
 
             // Виводимо попередження тільки якщо ми реально підмінили масив
             if (!isSortedInitially)
@@ -197,13 +203,13 @@ namespace SearchAlgorithms
                 Console.WriteLine("* Тому індекси можуть відрізнятися від лінійного пошуку.");
             }
         }
-        static void PrintResult(string name, int index, double time, string note)
-        {
-            string foundText = (index != -1) ? $"Index: {index}" : "Not Found";
-            Console.WriteLine($"{name,-18} | {foundText,-12} | Час: {time:F4} мс | ({note})");
-        }
+        static void PrintResult(string name, int index, double time, string note, double sort)
+{
+    string foundText = (index != -1) ? $"Index: {index}" : "Not Found";
+    Console.WriteLine($"{name,-18} | {foundText,-12} | Пошук: {time,8:F4} мс | {note,-12} | Сортування: {sort,8:F4} мс");
+}
 
-        // --- QUICK SORT (Швидке сортування) ---
+        // --- QUICK SORT (Швидке сортування)
         static void QuickSort(int[] arr, int low, int high)
         {
             if (low < high)
@@ -239,7 +245,7 @@ namespace SearchAlgorithms
             return i + 1;
         }
 
-        // --- АЛГОРИТМИ ПОШУКУ (Твої методи в правильному форматі) ---
+        // --- АЛГОРИТМИ ПОШУКУ 
 
         static int LinearSearch(int[] a, int x, int n)
         {

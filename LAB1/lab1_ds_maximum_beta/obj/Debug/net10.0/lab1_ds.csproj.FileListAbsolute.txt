@@ -1,0 +1,15 @@
+C:\Users\sasha\OneDrive\Рабочий стол\labs\datastructures\labs_datastructures\lab1_ds\bin\Debug\net10.0\lab1_ds.exe
+C:\Users\sasha\OneDrive\Рабочий стол\labs\datastructures\labs_datastructures\lab1_ds\bin\Debug\net10.0\lab1_ds.deps.json
+C:\Users\sasha\OneDrive\Рабочий стол\labs\datastructures\labs_datastructures\lab1_ds\bin\Debug\net10.0\lab1_ds.runtimeconfig.json
+C:\Users\sasha\OneDrive\Рабочий стол\labs\datastructures\labs_datastructures\lab1_ds\bin\Debug\net10.0\lab1_ds.dll
+C:\Users\sasha\OneDrive\Рабочий стол\labs\datastructures\labs_datastructures\lab1_ds\bin\Debug\net10.0\lab1_ds.pdb
+C:\Users\sasha\OneDrive\Рабочий стол\labs\datastructures\labs_datastructures\lab1_ds\obj\Debug\net10.0\lab1_ds.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\sasha\OneDrive\Рабочий стол\labs\datastructures\labs_datastructures\lab1_ds\obj\Debug\net10.0\lab1_ds.AssemblyInfoInputs.cache
+C:\Users\sasha\OneDrive\Рабочий стол\labs\datastructures\labs_datastructures\lab1_ds\obj\Debug\net10.0\lab1_ds.AssemblyInfo.cs
+C:\Users\sasha\OneDrive\Рабочий стол\labs\datastructures\labs_datastructures\lab1_ds\obj\Debug\net10.0\lab1_ds.csproj.CoreCompileInputs.cache
+C:\Users\sasha\OneDrive\Рабочий стол\labs\datastructures\labs_datastructures\lab1_ds\obj\Debug\net10.0\lab1_ds.sourcelink.json
+C:\Users\sasha\OneDrive\Рабочий стол\labs\datastructures\labs_datastructures\lab1_ds\obj\Debug\net10.0\lab1_ds.dll
+C:\Users\sasha\OneDrive\Рабочий стол\labs\datastructures\labs_datastructures\lab1_ds\obj\Debug\net10.0\refint\lab1_ds.dll
+C:\Users\sasha\OneDrive\Рабочий стол\labs\datastructures\labs_datastructures\lab1_ds\obj\Debug\net10.0\lab1_ds.pdb
+C:\Users\sasha\OneDrive\Рабочий стол\labs\datastructures\labs_datastructures\lab1_ds\obj\Debug\net10.0\lab1_ds.genruntimeconfig.cache
+C:\Users\sasha\OneDrive\Рабочий стол\labs\datastructures\labs_datastructures\lab1_ds\obj\Debug\net10.0\ref\lab1_ds.dll

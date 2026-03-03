@@ -1,0 +1,15 @@
+/Users/agapov/Desktop/АСД/labs_datastructures/LAB3/obj/Debug/net10.0/LAB2.GeneratedMSBuildEditorConfig.editorconfig
+/Users/agapov/Desktop/АСД/labs_datastructures/LAB3/obj/Debug/net10.0/LAB2.AssemblyInfoInputs.cache
+/Users/agapov/Desktop/АСД/labs_datastructures/LAB3/obj/Debug/net10.0/LAB2.AssemblyInfo.cs
+/Users/agapov/Desktop/АСД/labs_datastructures/LAB3/obj/Debug/net10.0/LAB2.csproj.CoreCompileInputs.cache
+/Users/agapov/Desktop/АСД/labs_datastructures/LAB3/obj/Debug/net10.0/LAB2.sourcelink.json
+/Users/agapov/Desktop/АСД/labs_datastructures/LAB3/bin/Debug/net10.0/LAB2
+/Users/agapov/Desktop/АСД/labs_datastructures/LAB3/bin/Debug/net10.0/LAB2.deps.json
+/Users/agapov/Desktop/АСД/labs_datastructures/LAB3/bin/Debug/net10.0/LAB2.runtimeconfig.json
+/Users/agapov/Desktop/АСД/labs_datastructures/LAB3/bin/Debug/net10.0/LAB2.dll
+/Users/agapov/Desktop/АСД/labs_datastructures/LAB3/bin/Debug/net10.0/LAB2.pdb
+/Users/agapov/Desktop/АСД/labs_datastructures/LAB3/obj/Debug/net10.0/LAB2.dll
+/Users/agapov/Desktop/АСД/labs_datastructures/LAB3/obj/Debug/net10.0/refint/LAB2.dll
+/Users/agapov/Desktop/АСД/labs_datastructures/LAB3/obj/Debug/net10.0/LAB2.pdb
+/Users/agapov/Desktop/АСД/labs_datastructures/LAB3/obj/Debug/net10.0/LAB2.genruntimeconfig.cache
+/Users/agapov/Desktop/АСД/labs_datastructures/LAB3/obj/Debug/net10.0/ref/LAB2.dll

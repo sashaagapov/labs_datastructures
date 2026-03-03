@@ -1,0 +1,13 @@
+# Visual Studio
+bin/
+obj/
+.vs/
+.vscode/
+.DS_Store
+
+# Other IDE files
+*.sln
+*.csproj
+*.userprefs
+*.ide
+*~

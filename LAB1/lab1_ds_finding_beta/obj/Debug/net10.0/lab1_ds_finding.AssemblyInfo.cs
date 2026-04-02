@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("lab1_ds_finding")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+04c453bcf79bbd0efd1bd0b2b91d405ab95818a4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c0f4a9480ca74c36d4b2aec22c7f2e9fee4f4dff")]
 [assembly: System.Reflection.AssemblyProductAttribute("lab1_ds_finding")]
 [assembly: System.Reflection.AssemblyTitleAttribute("lab1_ds_finding")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

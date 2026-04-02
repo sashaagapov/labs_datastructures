@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/Users/agapov/Desktop/АСД/labs_datastructures/LAB1/lab1_ds_maximum_beta/lab1_ds.csproj": {}
+    "C:\\Users\\sasha\\OneDrive\\Desktop\\University\\АСД\\labs_datastructures\\LAB1\\lab1_ds_maximum_beta\\lab1_ds.csproj": {}
   },
   "projects": {
-    "/Users/agapov/Desktop/АСД/labs_datastructures/LAB1/lab1_ds_maximum_beta/lab1_ds.csproj": {
+    "C:\\Users\\sasha\\OneDrive\\Desktop\\University\\АСД\\labs_datastructures\\LAB1\\lab1_ds_maximum_beta\\lab1_ds.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/agapov/Desktop/АСД/labs_datastructures/LAB1/lab1_ds_maximum_beta/lab1_ds.csproj",
+        "projectUniqueName": "C:\\Users\\sasha\\OneDrive\\Desktop\\University\\АСД\\labs_datastructures\\LAB1\\lab1_ds_maximum_beta\\lab1_ds.csproj",
         "projectName": "lab1_ds",
-        "projectPath": "/Users/agapov/Desktop/АСД/labs_datastructures/LAB1/lab1_ds_maximum_beta/lab1_ds.csproj",
-        "packagesPath": "/Users/agapov/.nuget/packages/",
-        "outputPath": "/Users/agapov/Desktop/АСД/labs_datastructures/LAB1/lab1_ds_maximum_beta/obj/",
+        "projectPath": "C:\\Users\\sasha\\OneDrive\\Desktop\\University\\АСД\\labs_datastructures\\LAB1\\lab1_ds_maximum_beta\\lab1_ds.csproj",
+        "packagesPath": "C:\\Users\\sasha\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\sasha\\OneDrive\\Desktop\\University\\АСД\\labs_datastructures\\LAB1\\lab1_ds_maximum_beta\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/agapov/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\sasha\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
@@ -38,7 +38,7 @@
           "auditLevel": "low",
           "auditMode": "all"
         },
-        "SdkAnalysisLevel": "10.0.100"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
         "net10.0": {
@@ -59,7 +59,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.101/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",

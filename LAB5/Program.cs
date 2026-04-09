@@ -1,4 +1,4 @@
-
+﻿
 namespace agapovlab5
 {
     class Program

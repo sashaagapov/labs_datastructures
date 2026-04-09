@@ -4,35 +4,86 @@ namespace agapovlab5
     {
         public static void Run()
         {
-            bool isRunning = false;
-            while (isRunning == false)
+            bool isRunning = true;
+            while (isRunning)
             {
-                Console.WriteLine("=======================РЕАЛІЗОВАНІ ЗАВДАННЯ==================");
-                Console.WriteLine("1.Рекурсивний алгоритм,який здійснює прямий та зворотний обходи дерева з n вузлвми за час O(n)");
+                Console.Clear();
+                Console.WriteLine("======================= РЕАЛІЗОВАНІ ЗАВДАННЯ ==================");
+                Console.WriteLine("1. Рекурсивні обходи (PreOrder, PostOrder)");
+                Console.WriteLine("2. Нерекурсивний симетричний обхід (InOrder)");
+                Console.WriteLine("0. Вихід");
                 Console.WriteLine("=============================================================");
                 Console.Write("Виберіть завдання для виконання: ");
-                int choice = int.Parse(Console.ReadLine() ?? "");
-                switch (choice)
+
+                if (int.TryParse(Console.ReadLine(), out int choice))
                 {
-                    case 1:
-                        Console.Write("Введіть кількість вузлів: ");
-                        int n = int.Parse(Console.ReadLine() ?? "");
-                        RecursiveTree node1 = new RecursiveTree(1);
-                        RecursiveTree node2 = new RecursiveTree(2);
-                        RecursiveTree node3 = new RecursiveTree(3);
-                        node1.SetLeft(node2);
-                        node1.SetRight(node3);
-                        Console.Write("PreOrder: ");
-                        node1.PreOrder(node1);
-                        Console.WriteLine();
-                        Console.Write("PosyOrder: ");
-                        node1.PostOrder(node1);
-                        Console.WriteLine();
-                        Console.WriteLine("Натисніть Enter,щоб повернутись в меню");
-                        Console.ReadKey();
-                        break;
+                    switch (choice)
+                    {
+                        case 1:
+                            ExecuteTask1();
+                            break;
+                        case 2:
+                            ExecuteTask2();
+                            break;
+                        case 0:
+                            isRunning = false;
+                            break;
+                        default:
+                            Console.WriteLine("Невірний вибір. Спробуйте ще раз.");
+                            WaitForKey();
+                            break;
+                    }
                 }
             }
+        }
+
+        // Окрема логіка для першого пункту 
+        private static void ExecuteTask1()
+        {
+            Console.Write("Введіть кількість вузлів: ");
+            if (int.TryParse(Console.ReadLine(), out int n) && n > 0)
+            {
+                RecursiveTree root = Service.BuildTree(n);
+
+                Console.Write("PreOrder: ");
+                root.PreOrder(root);
+                Console.WriteLine();
+
+                Console.Write("PostOrder: ");
+                root.PostOrder(root);
+                Console.WriteLine();
+            }
+            else
+            {
+                Console.WriteLine("Введено некоректну кількість.");
+            }
+            WaitForKey();
+        }
+
+        // Окрема логіка для другого пункту (Завдання 3 за методичкою)
+        private static void ExecuteTask2()
+        {
+            Console.Write("Введіть кількість вузлів: ");
+            if (int.TryParse(Console.ReadLine(), out int n) && n > 0)
+            {
+                RecursiveTree root = Service.BuildTree(n);
+
+                Console.Write("Iterative InOrder: ");
+                root.IterativeInOrder(root);
+                Console.WriteLine();
+            }
+            else
+            {
+                Console.WriteLine("Введено некоректну кількість.");
+            }
+            WaitForKey();
+        }
+
+        // Спільний метод для уникнення дублювання Console.ReadKey()
+        private static void WaitForKey()
+        {
+            Console.WriteLine("Натисніть Enter, щоб повернутись в меню...");
+            Console.ReadLine(); // ReadLine працює надійніше для Enter, ніж ReadKey
         }
     }
 }

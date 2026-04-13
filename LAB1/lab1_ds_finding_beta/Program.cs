@@ -1,4 +1,3 @@
-﻿using System;
 using System.Diagnostics;
 
 namespace SearchAlgorithms
@@ -153,12 +152,12 @@ namespace SearchAlgorithms
             sw.Start();
             int idxLin = LinearSearch(numbers, target, n);
             sw.Stop();
-            PrintResult("Лінійний", idxLin, sw.Elapsed.TotalMilliseconds, "Оригінал",0);
+            PrintResult("Лінійний", idxLin, sw.Elapsed.TotalMilliseconds, "Оригінал", 0);
 
             sw.Restart();
             int idxBar = BarrierSearch(numbers, target, n);
             sw.Stop();
-            PrintResult("З бар'єром", idxBar, sw.Elapsed.TotalMilliseconds, "Оригінал",0);
+            PrintResult("З бар'єром", idxBar, sw.Elapsed.TotalMilliseconds, "Оригінал", 0);
 
             // 2. БІНАРНІ ПОШУКИ
             // Тут визначаємо, який масив дати бінарному пошуку
@@ -189,7 +188,7 @@ namespace SearchAlgorithms
             sw.Restart();
             int idxBin = BinarySearch(arrayForBinary, target, n);
             sw.Stop();
-            PrintResult("Бінарний", idxBin, sw.Elapsed.TotalMilliseconds, noteBinary,sortingTime);
+            PrintResult("Бінарний", idxBin, sw.Elapsed.TotalMilliseconds, noteBinary, sortingTime);
 
             sw.Restart();
             int idxGold = GoldenSectionSearch(arrayForBinary, target, n);
@@ -204,10 +203,10 @@ namespace SearchAlgorithms
             }
         }
         static void PrintResult(string name, int index, double time, string note, double sort)
-{
-    string foundText = (index != -1) ? $"Index: {index}" : "Not Found";
-    Console.WriteLine($"{name,-18} | {foundText,-12} | Пошук: {time,8:F4} мс | {note,-12} | Сортування: {sort,8:F4} мс");
-}
+        {
+            string foundText = (index != -1) ? $"Index: {index}" : "Not Found";
+            Console.WriteLine($"{name,-18} | {foundText,-12} | Пошук: {time,8:F4} мс | {note,-12} | Сортування: {sort,8:F4} мс");
+        }
 
         // --- QUICK SORT (Швидке сортування)
         static void QuickSort(int[] arr, int low, int high)
@@ -245,7 +244,7 @@ namespace SearchAlgorithms
             return i + 1;
         }
 
-        // --- АЛГОРИТМИ ПОШУКУ 
+        // --- АЛГОРИТМИ ПОШУКУ
 
         static int LinearSearch(int[] a, int x, int n)
         {

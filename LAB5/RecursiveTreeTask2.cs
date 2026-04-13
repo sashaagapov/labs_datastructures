@@ -1,40 +1,107 @@
 namespace agapovlab5
 {
+    /// <summary>
+    /// В цьому файлі реалізується логіка для завдання №2
+    /// </summary>
     public partial class RecursiveTree
     {
+        private int nodeValue = 0;
+        private RecursiveTree left;
+        private RecursiveTree right;
+
         /// <summary>
-        /// Завдання 3: Нерекурсивний симетричний обхід (InOrder).
-        /// Використовує допоміжний стек (LIFO).
+        /// Конструктор для створення вузла дерева з заданим значенням.
+        /// Лівий та правий нащадки ініціалізуються як null.
         /// </summary>
-        public void IterativeInOrder(RecursiveTree node)
+        /// <param name="nodeValue">Значення вузла</param>
+        public RecursiveTree(int nodeValue)
         {
-            // Базовий випадок
+            this.nodeValue = nodeValue;
+            left = null;
+            right = null;
+        }
+        /// <summary>
+        /// Властивість для отримання та встановлення значення вузла.
+        /// </summary>
+        public int NodeValue
+        {
+            get { return nodeValue; }
+            set { nodeValue = value; }
+        }
+        /// <summary>
+        /// Властивості для отримання лівого та правого нащадків вузла.
+        /// </summary>
+        public RecursiveTree Left
+        {
+            get { return left; }
+        }
+        /// <summary>
+        /// Властивість для отримання правого нащадка вузла.
+        /// </summary>
+        public RecursiveTree Right
+        {
+            get { return right; }
+        }
+        /// <summary>
+        /// Методи для встановлення лівого та правого 
+        /// нащадків вузла. Вони приймають об'єкт типу RecursiveTree 
+        /// і присвоюють його відповідному полю (left або right).
+        /// </summary>
+        /// <param name="node"></param>
+        public void SetLeft(RecursiveTree node)
+        {
+            left = node;
+        }
+        /// <summary>
+        /// Метод для встановлення правого нащадка вузла. 
+        /// Він приймає об'єкт типу RecursiveTree і присвоює його полю right.
+        /// </summary>
+        /// <param name="node"></param>
+        public void SetRight(RecursiveTree node)
+        {
+            right = node;
+        }
+        /// <summary>
+        /// Метод для виконання прямого обходу дерева (PreOrder).
+        /// Він приймає вузол як аргумент і виконує наступні кроки:
+        /// 1. Виводить значення поточного вузла.
+        /// 2. Рекурсивно викликає себе для лівого нащадка.
+        /// 3. Рекурсивно викликає себе для правого нащадка.
+        /// Якщо поточний вузол є null, метод просто повертається,
+        ///  що зупиняє рекурсію для цього шляху.
+        /// </summary>
+        /// <param name="node"></param>
+        public void PreOrder(RecursiveTree node)
+        {
             if (node == null)
             {
                 return;
             }
-
-            // Ініціалізація
-            Stack<RecursiveTree> recursiveTrees = new Stack<RecursiveTree>();
-            RecursiveTree current = node;
-
-            // Головний цикл працює, поки є вузли для обробки або збережені в стеку
-            while (current != null || recursiveTrees.Count > 0)
+            Console.Write($"{node.nodeValue} ");
+            PreOrder(node.left);
+            PreOrder(node.right);
+        }
+        /// <summary>
+        /// Метод для виконання зворотного обходу дерева (PostOrder).
+        /// Він приймає вузол як аргумент і виконує наступні кроки:
+        /// 1. Рекурсивно викликає себе для лівого нащадка.
+        /// 2. Рекурсивно викликає себе для правого нащадка.
+        /// 3. Виводить значення поточного вузла.
+        /// Якщо поточний вузол є null, метод просто повертається,
+        /// що зупиняє рекурсію для цього шляху.
+        /// </summary>
+        /// <param name="node"></param>
+        public void PostOrder(RecursiveTree node)
+        {
+            if (node == null)
             {
-                // Крок 1: Йдемо максимально вліво (Ліво)
-                while (current != null)
-                {
-                    recursiveTrees.Push(current);
-                    current = current.Left;
-                }
-
-                // Крок 2: Дістаємо вузол зі стеку і виводимо його значення (Корінь)
-                current = recursiveTrees.Pop();
-                Console.Write($"{current.NodeValue} ");
-
-                // Крок 3: Переходимо до правого піддерева (Право)
-                current = current.Right;
+                return;
             }
+            PostOrder(node.left);
+            PostOrder(node.right);
+            Console.Write($"{node.nodeValue} ");
         }
     }
+
+
 }

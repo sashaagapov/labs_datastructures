@@ -61,5 +61,26 @@ namespace agapovlab5
             // Повертаємо найперший елемент (корінь дерева)
             return recursiveTrees[0];
         }
+        public static RecursiveTree BuildBST(int n)
+        {
+            RecursiveTree root = null;  // дерево порожнє на початку
+
+            for (int i = 0; i < n; i++)
+            {
+                Console.Write($"Введіть значення вузла [{i}]: ");
+                if (int.TryParse(Console.ReadLine(), out int value))
+                {
+                    root = root.TreeInsert(root,value);  // що тут написати замість recursiveTrees[i] = new RecursiveTree(value)?
+                }
+                else
+                {
+                    Console.WriteLine("Введіть число.");
+                    i--;
+                }
+            }
+
+            return root;
+        }
     }
+
 }

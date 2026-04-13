@@ -11,6 +11,7 @@ namespace agapovlab5
                 Console.WriteLine("======================= РЕАЛІЗОВАНІ ЗАВДАННЯ ==================");
                 Console.WriteLine("1. Рекурсивні обходи (PreOrder, PostOrder)");
                 Console.WriteLine("2. Нерекурсивний симетричний обхід (InOrder)");
+                Console.WriteLine("3. TreeInsert");
                 Console.WriteLine("0. Вихід");
                 Console.WriteLine("=============================================================");
                 Console.Write("Виберіть завдання для виконання: ");
@@ -25,6 +26,8 @@ namespace agapovlab5
                         case 2:
                             ExecuteTask2();
                             break;
+                        case 3:
+                            ExecuteTask3;
                         case 0:
                             isRunning = false;
                             break;
@@ -77,6 +80,17 @@ namespace agapovlab5
                 Console.WriteLine("Введено некоректну кількість.");
             }
             WaitForKey();
+        }
+        public static void ExecuteTask3()
+        {
+            Console.Write("Введіть кількість вузлів: ");
+            if (int.TryParse(Console.ReadLine(), out int n) && n > 0)
+            {
+                RecursiveTree root = Service.BuildBST(n);
+                Console.Write("Iterative InOrder: ");
+                root.IterativeInOrder(root);
+                Console.WriteLine();
+            }
         }
 
         // Спільний метод для уникнення дублювання Console.ReadKey()

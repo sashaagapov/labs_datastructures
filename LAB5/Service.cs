@@ -14,9 +14,9 @@ namespace agapovlab5
         /// Він приймає кількість вузлів (n) як аргумент і виконує наступні кроки:
         /// 1. Створює масив типу RecursiveTree розміром n для зберігання вузлів дерева.
         /// 2. Заповнює масив, запитуючи користувача ввести значення для кожного вузла.
-        /// 3. Зв'язує вузли між собою, встановлюючи лівого та правого нащадків відповідно до формули: 
+        /// 3. Зв'язує вузли між собою, встановлюючи лівого та правого нащадків відповідно до формули:
         ///    - Лівий нащадок для вузла з індексом i знаходиться за індексом 2*i + 1.
-        ///    - Правий нащадок для вузла з індексом i знаходиться за індексом 2*i + 2. 
+        ///    - Правий нащадок для вузла з індексом i знаходиться за індексом 2*i + 2.
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
@@ -61,6 +61,15 @@ namespace agapovlab5
             // Повертаємо найперший елемент (корінь дерева)
             return recursiveTrees[0];
         }
+        /// <summary>
+        /// Метод для побудови бінарного дерева пошуку (BST) на основі введених користувачем даних.
+        /// Він приймає кількість вузлів (n) як аргумент і виконує наступні кроки:
+        /// 1. Запитує користувача ввести значення для кожного вузла.
+        /// 2. Кожне введене значення вставляє в BST через рекурсивний TreeInsert.
+        /// 3. BST-властивість гарантується автоматично: ліві нащадки менші, праві більші.
+        /// </summary>
+        /// <param name="n">Кількість вузлів які потрібно вставити</param>
+        /// <returns>Корінь побудованого BST</returns>
         public static RecursiveTree BuildBST(int n)
         {
             RecursiveTree root = null;  // дерево порожнє на початку
@@ -70,7 +79,7 @@ namespace agapovlab5
                 Console.Write($"Введіть значення вузла [{i}]: ");
                 if (int.TryParse(Console.ReadLine(), out int value))
                 {
-                    root = root.TreeInsert(root,value);  // що тут написати замість recursiveTrees[i] = new RecursiveTree(value)?
+                    root = RecursiveTree.TreeInsert(root, value);
                 }
                 else
                 {
@@ -80,6 +89,27 @@ namespace agapovlab5
             }
 
             return root;
+        }
+        /// <summary>
+        /// Візуальний вивід дерева в консоль у вигляді ієрархічної структури.
+        /// Використовує рекурсію для обходу вузлів.
+        /// </summary>
+        /// <param name="node">Поточний вузол</param>
+        /// <param name="indent">Відступ для поточного рівня</param>
+        /// <param name="isLeft">Чи є поточний вузол лівим нащадком</param>
+        public static void PrintTree(RecursiveTree node, string indent, bool isLeft)
+        {
+            if (node == null)
+            {
+                return;
+            }
+
+            Console.WriteLine($"{indent}{(isLeft ? "├── " : "└── ")}{node.NodeValue}");
+
+            string childIndent = indent + (isLeft ? "│   " : "    ");
+
+            PrintTree(node.Right, childIndent, true);
+            PrintTree(node.Left, childIndent, false);
         }
     }
 

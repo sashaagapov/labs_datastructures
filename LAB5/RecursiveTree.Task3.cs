@@ -13,13 +13,13 @@ namespace agapovlab5
         /// <param name="node">Корінь дерева з якого починається обхід</param>
         public void IterativeInOrder(RecursiveTree node)
         {
-            if (node == null)
+            if (node == null)// Якщо дерево порожнє, просто повертаємося
             {
                 return;
             }
 
             Stack<RecursiveTree> stack = new Stack<RecursiveTree>();
-            RecursiveTree current = node;
+            RecursiveTree current = node;// Починаємо з кореня дерева
 
             while (current != null || stack.Count > 0)
             {

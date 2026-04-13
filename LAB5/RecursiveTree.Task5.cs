@@ -29,7 +29,6 @@ namespace agapovlab5
                 {
                     return TreeMaximum(node.Left);
                 }
-
                 // Немає лівого піддерева — повертаємо кандидата
                 return candidate;
             }

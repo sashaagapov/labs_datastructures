@@ -17,16 +17,16 @@ namespace agapovlab5
         /// <returns>Корінь дерева після вставки</returns>
         public static RecursiveTree TreeInsert(RecursiveTree node, int value)
         {
-            if (node == null)
+            if (node == null)// Якщо дійшли до null — створюємо новий вузол з цим значенням
             {
                 return new RecursiveTree(value);
             }
 
-            if (value < node.NodeValue)
+            if (value < node.NodeValue)// Якщо значення менше — йдемо вліво
             {
                 node.SetLeft(TreeInsert(node.Left, value));
             }
-            else if (value > node.NodeValue)
+            else if (value > node.NodeValue)// Якщо значення більше — йдемо вправо
             {
                 node.SetRight(TreeInsert(node.Right, value));
             }

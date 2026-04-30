@@ -11,6 +11,9 @@ namespace agapovlab6
         private RecursiveTree? right;
         private RecursiveTree? parent;
 
+        /// <summary>
+        /// Властивість для отримання та встановлення батьківського вузла.
+        /// </summary>
         public RecursiveTree? Parent
         {
             get { return parent; }

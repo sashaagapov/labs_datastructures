@@ -1,7 +1,13 @@
 namespace agapovlab6
 {
+    /// <summary>
+    /// Допоміжний клас для введення, побудови та виведення дерев.
+    /// </summary>
     public static class Service
     {
+        /// <summary>
+        /// Виводить коротку інформацію про лабораторну роботу.
+        /// </summary>
         public static void Welcome()
         {
             Console.WriteLine("=============================================================");

@@ -9,6 +9,9 @@ namespace agapovlab6
         private static RecursiveTree currentTree = null;
         private static RecursiveTree currentBST = null;
 
+        /// <summary>
+        /// Запускає головне меню програми та обробляє вибір користувача.
+        /// </summary>
         public static void Run()
         {
             bool isRunning = true;
@@ -28,6 +31,7 @@ namespace agapovlab6
                 Console.WriteLine("7. Завдання 4: TreeMinimum / TreeMaximum");
                 Console.WriteLine("8. Завдання 5: TreePredecessor ");
                 Console.WriteLine("9. Завдання 6: TreeInsert — перевірка BST");
+                Console.WriteLine("10. Завдання 7: TreeDelete: видалення вузла з BST");
                 Console.WriteLine("=============================================================");
                 Console.WriteLine("0. Вихід");
                 Console.WriteLine("=============================================================");
@@ -63,6 +67,9 @@ namespace agapovlab6
                             break;
                         case 9:
                             ExecuteTask6();
+                            break;
+                        case 10:
+                            ExecuteTask7();
                             break;
                         case 0:
                             isRunning = false;
@@ -261,7 +268,33 @@ namespace agapovlab6
             WaitForKey();
         }
 
+        private static void ExecuteTask7()
+        {
+            if (currentBST == null)
+            {
+                Console.WriteLine("Спочатку створіть BST (пункт 2).");
+                WaitForKey();
+                return;
+            }
 
+            Console.Write("Введіть значення вузла для видалення: ");
+            if (!int.TryParse(Console.ReadLine(), out int value))
+            {
+                Console.WriteLine("Введіть число: ");
+                WaitForKey();
+                return;
+            }
+
+            currentBST = RecursiveTree.TreeDelete(currentBST, value);
+            Console.WriteLine($"Вузол зі значенням {value} видалено (якщо він існував).");
+
+            WaitForKey();
+        }
+
+
+        /// <summary>
+        /// Очікує натискання Enter перед поверненням у меню.
+        /// </summary>
         private static void WaitForKey()
         {
             Console.WriteLine("Натисніть Enter, щоб повернутись в меню...");

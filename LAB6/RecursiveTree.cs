@@ -7,8 +7,15 @@ namespace agapovlab6
     public partial class RecursiveTree
     {
         private int nodeValue = 0;
-        private RecursiveTree left;
-        private RecursiveTree right;
+        private RecursiveTree? left;
+        private RecursiveTree? right;
+        private RecursiveTree? parent;
+
+        public RecursiveTree? Parent
+        {
+            get { return parent; }
+            set { parent = value; }
+        }
 
         /// <summary>
         /// Конструктор для створення вузла дерева з заданим значенням.
@@ -34,7 +41,7 @@ namespace agapovlab6
         /// <summary>
         /// Властивість для отримання лівого нащадка вузла.
         /// </summary>
-        public RecursiveTree Left
+        public RecursiveTree? Left
         {
             get { return left; }
         }
@@ -42,7 +49,7 @@ namespace agapovlab6
         /// <summary>
         /// Властивість для отримання правого нащадка вузла.
         /// </summary>
-        public RecursiveTree Right
+        public RecursiveTree? Right
         {
             get { return right; }
         }
@@ -51,18 +58,27 @@ namespace agapovlab6
         /// Метод для встановлення лівого нащадка вузла.
         /// </summary>
         /// <param name="node">Вузол який стане лівим нащадком</param>
-        public void SetLeft(RecursiveTree node)
+        public void SetLeft(RecursiveTree? node)
         {
             left = node;
+
+            if (node != null)
+            {
+                node.Parent = this;
+            }
         }
 
         /// <summary>
         /// Метод для встановлення правого нащадка вузла.
         /// </summary>
         /// <param name="node">Вузол який стане правим нащадком</param>
-        public void SetRight(RecursiveTree node)
+        public void SetRight(RecursiveTree? node)
         {
             right = node;
+            if (node != null)
+            {
+                node.Parent = this;
+            }
         }
     }
 }

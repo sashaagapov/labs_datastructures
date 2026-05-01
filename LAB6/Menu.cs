@@ -32,6 +32,8 @@ namespace agapovlab6
                 Console.WriteLine("8. Завдання 5: TreePredecessor ");
                 Console.WriteLine("9. Завдання 6: TreeInsert — перевірка BST");
                 Console.WriteLine("10. Завдання 7: TreeDelete: видалення вузла з BST");
+                Console.WriteLine("11. Завдання 8: TreeRotate Left: Поворот в ліво");
+                Console.WriteLine("12. Завданя 9: TreeRotate Right: Поворот в право");
                 Console.WriteLine("=============================================================");
                 Console.WriteLine("0. Вихід");
                 Console.WriteLine("=============================================================");
@@ -70,6 +72,12 @@ namespace agapovlab6
                             break;
                         case 10:
                             ExecuteTask7();
+                            break;
+                        case 11:
+                            ExecuteTask8();
+                            break;
+                        case 12:
+                            ExecuteTask9();
                             break;
                         case 0:
                             isRunning = false;
@@ -287,6 +295,75 @@ namespace agapovlab6
 
             currentBST = RecursiveTree.TreeDelete(currentBST, value);
             Console.WriteLine($"Вузол зі значенням {value} видалено (якщо він існував).");
+
+            WaitForKey();
+        }
+
+        private static void ExecuteTask8()
+        {
+            if (currentBST == null)
+            {
+                Console.WriteLine("Спочатку створіть BST.");
+                WaitForKey();
+                return;
+            }
+
+            Console.Write("Введіть значення вузла для лівого повороту: ");
+
+            if (!int.TryParse(Console.ReadLine(), out int leftRotateValue))
+            {
+                Console.WriteLine("Некоректне значення.");
+                WaitForKey();
+                return;
+            }
+
+            RecursiveTree? leftRotateNode = RecursiveTree.Search(currentBST, leftRotateValue);
+
+            if (leftRotateNode == null)
+            {
+                Console.WriteLine("Вузол не знайдено.");
+                WaitForKey();
+                return;
+            }
+
+            currentBST = RecursiveTree.LeftRotate(currentBST, leftRotateNode);
+
+            Console.WriteLine("BST після лівого повороту:");
+            Service.PrintTree(currentBST, "", false);
+
+            WaitForKey();
+        }
+        private static void ExecuteTask9()
+        {
+            if (currentBST == null)
+            {
+                Console.WriteLine("Спочатку створіть BST.");
+                WaitForKey();
+                return;
+            }
+
+            Console.Write("Введіть значення вузла для правого повороту: ");
+
+            if (!int.TryParse(Console.ReadLine(), out int rightRotateValue))
+            {
+                Console.WriteLine("Некоректне значення.");
+                WaitForKey();
+                return;
+            }
+
+            RecursiveTree? rightRotateNode = RecursiveTree.Search(currentBST, rightRotateValue);
+
+            if (rightRotateNode == null)
+            {
+                Console.WriteLine("Вузол не знайдено.");
+                WaitForKey();
+                return;
+            }
+
+            currentBST = RecursiveTree.RightRotate(currentBST, rightRotateNode);
+
+            Console.WriteLine("BST після правого повороту:");
+            Service.PrintTree(currentBST, "", false);
 
             WaitForKey();
         }

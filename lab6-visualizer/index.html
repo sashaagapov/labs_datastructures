@@ -1,0 +1,135 @@
+<!doctype html>
+<!--
+  Документаційна примітка:
+  цей навчальний проєкт був створений за допомогою ШІ як інтерактивний
+  візуалізатор для кращого розуміння матеріалу лабораторної роботи 6
+  про бінарні дерева, BST-операції, повороти та AVL-балансування.
+-->
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Лабораторна 6 — Візуалізатор бінарних дерев</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <section id="homeScreen" class="home-screen">
+    <div class="home-inner">
+      <p class="eyebrow">Лабораторна 6</p>
+      <h1 class="home-title">Дерева</h1>
+      <p class="home-subtitle">Обери тему — і побачиш як воно працює зсередини</p>
+
+      <div id="topicGrid" class="topic-grid" aria-label="Теми"></div>
+
+      <button id="resetProgressLink" class="reset-progress" type="button">Скинути прогрес</button>
+    </div>
+  </section>
+
+  <section id="visualizerScreen" class="visualizer-screen hidden">
+    <aside class="sidebar" aria-label="Навігація темами">
+      <div class="sidebar-title">🌳 Дерева</div>
+      <button id="backToTopicsBtn" class="back-link" type="button">← Назад до тем</button>
+      <nav id="sidebarNav" class="sidebar-nav"></nav>
+    </aside>
+
+    <div class="app-shell">
+      <header class="top-bar">
+        <div>
+          <p class="eyebrow">Поточна тема</p>
+          <h1 id="activeTopicTitle">Інтерактивний візуалізатор</h1>
+        </div>
+
+        <div class="top-controls">
+          <label class="scenario-picker">
+            <span>Сценарій</span>
+            <select id="scenarioSelect"></select>
+          </label>
+
+          <section class="custom-section" aria-label="Свої числа">
+            <h2>Свої числа</h2>
+            <div id="customFields" class="custom-fields"></div>
+            <p id="customError" class="custom-error" aria-live="polite"></p>
+          </section>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="panel tree-panel" aria-label="Візуалізація дерева">
+          <div class="panel-header">
+            <div>
+              <p class="panel-kicker">Дерево</p>
+              <h2 id="treeTitle">SVG-візуалізація</h2>
+            </div>
+            <div class="legend">
+              <span><i class="legend-dot active"></i>активний вузол</span>
+              <span><i class="legend-dot root"></i>root</span>
+            </div>
+          </div>
+          <svg id="treeSvg" role="img" aria-label="Поточний стан дерева"></svg>
+        </section>
+
+        <section class="panel code-panel" aria-label="C# код алгоритму">
+          <div class="panel-header">
+            <div>
+              <p class="panel-kicker">Алгоритм</p>
+              <h2>C# псевдокод</h2>
+            </div>
+          </div>
+          <pre id="codeBlock" class="code-block"></pre>
+        </section>
+
+        <section class="panel explanation-panel" aria-label="Пояснення поточного кроку">
+          <div class="panel-header explanation-header">
+            <div>
+              <p class="panel-kicker">Пояснення</p>
+              <h2>Що відбувається зараз</h2>
+            </div>
+            <div id="explanationLevelToggle" class="level-toggle" aria-label="Рівень пояснення">
+              <button type="button" data-level="short">Коротко</button>
+              <button type="button" data-level="normal" class="active">Нормально</button>
+              <button type="button" data-level="deep">Глибоко</button>
+            </div>
+          </div>
+
+          <article class="explanation-card">
+            <p id="explanationText" class="explanation-text"></p>
+            <div id="invariantBox" class="invariant-box"></div>
+          </article>
+
+          <article class="variables-card">
+            <h3>Змінні</h3>
+            <div id="variablesTable" class="variables-table"></div>
+          </article>
+        </section>
+      </main>
+
+      <footer class="bottom-bar">
+        <button id="prevBtn" type="button">Назад</button>
+        <button id="playBtn" type="button" class="primary">Пуск</button>
+        <button id="nextBtn" type="button">Далі</button>
+        <button id="resetBtn" type="button">Скинути</button>
+        <button id="quizBtn" type="button" class="quiz-button hidden">Перевір себе</button>
+        <span id="stepCounter" class="step-counter">Крок 1 / 1</span>
+      </footer>
+    </div>
+  </section>
+
+  <div id="quizOverlay" class="quiz-overlay hidden" role="dialog" aria-modal="true" aria-label="Перевір себе">
+    <div class="quiz-card">
+      <div class="quiz-top">
+        <div>
+          <p class="eyebrow">Перевір себе</p>
+          <h2 id="quizTitle">Квіз</h2>
+        </div>
+        <button id="quizCloseBtn" class="quiz-close" type="button">Закрити</button>
+      </div>
+      <p id="quizQuestion" class="quiz-question"></p>
+      <div id="quizOptions" class="quiz-options"></div>
+      <p id="quizFeedback" class="quiz-feedback"></p>
+      <button id="quizNextBtn" class="primary quiz-next" type="button">Наступне питання</button>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>

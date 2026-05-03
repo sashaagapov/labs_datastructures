@@ -1,33 +1,3 @@
-import { codes } from "./data/codes.js";
-import { scenarioDefinitions } from "./data/scenarios.js";
-import { topicDefinitions } from "./data/topics.js";
-import { quizDefinitions } from "./data/quizzes.js";
-import { defenseHints } from "./data/defenseHints.js";
-
-import {
-  TreeNode,
-  buildBst,
-  insertPlain,
-  find,
-  setLeft,
-  setRight,
-  replaceAtParent,
-  transplant,
-  treeMinimum,
-  recomputeAll,
-  serializeTree
-} from "./core/tree.js";
-
-import {
-  validateBST,
-  validateParentLinks,
-  computeHeight,
-  validateHeights,
-  validateBalanceFactors,
-  validateAVL,
-  buildInvariantStatus
-} from "./core/validation.js";
-
 const homeScreen = document.getElementById("homeScreen");
 const visualizerScreen = document.getElementById("visualizerScreen");
 const topicGrid = document.getElementById("topicGrid");
@@ -69,14 +39,558 @@ let currentScenario = null;
 let steps = [];
 let currentIndex = 0;
 let playTimer = null;
-let explanationLevel = "medium";
+let explanationLevel = "normal";
 let defenseModeEnabled = false;
 let progressState = readProgress();
 let quizState = null;
 
-function valueOf(node) {
-  return node ? node.value : null;
-}
+const defenseHints = {
+  "bstSearch": `
+    <ul>
+      <li><strong>Інваріант BST:</strong> лівий син &lt; батько &lt; правий син.</li>
+      <li>Тому при пошуку ми порівнюємо <em>target</em> із поточним вузлом.</li>
+      <li>Якщо <em>target</em> менший — ідемо вліво.</li>
+      <li>Якщо <em>target</em> більший — вправо.</li>
+      <li>Це дозволяє <strong>не переглядати все дерево</strong>, скорочуючи час пошуку до O(h).</li>
+    </ul>
+  `,
+  "bstDelete": `
+    <ul>
+      <li>Спочатку шукаємо вузол $z$, який треба видалити.</li>
+      <li>Якщо <strong>0 дітей:</strong> просто прибираємо вузол (замінюємо на null).</li>
+      <li>Якщо <strong>1 дитина:</strong> ця дитина стає на місце видаленого вузла (операція Transplant).</li>
+      <li>Якщо <strong>2 дитини:</strong> шукаємо <em>successor</em> (наступника) — мінімум у правому піддереві.</li>
+      <li>Наступник переноситься на місце $z$.</li>
+      <li>Функція Transplant потрібна, щоб надійно оновити зв'язки parent та root.</li>
+    </ul>
+  `,
+  "leftRotate": `
+    <ul>
+      <li>$y = x.Right$ (правий син $x$).</li>
+      <li>Вузол $y$ піднімається на місце $x$.</li>
+      <li>Вузол $x$ "опускається" і стає лівим сином $y$.</li>
+      <li>Ліве піддерево $y$ ($B = y.Left$) переходить у праве піддерево $x$ ($x.Right$).</li>
+      <li><strong>BST інваріант зберігається:</strong> оскільки $x < B < y$, $B$ ідеально стає правим сином $x$.</li>
+      <li>Якщо $x$ був коренем, $y$ стає новим коренем (root змінюється).</li>
+    </ul>
+  `,
+  "rightRotate": `
+    <ul>
+      <li>$x = y.Left$ (лівий син $y$).</li>
+      <li>Вузол $x$ піднімається на місце $y$.</li>
+      <li>Вузол $y$ "опускається" і стає правим сином $x$.</li>
+      <li>Праве піддерево $x$ ($B = x.Right$) переходить у ліве піддерево $y$ ($y.Left$).</li>
+      <li><strong>BST інваріант зберігається:</strong> оскільки $x < B < y$, $B$ ідеально стає лівим сином $y$.</li>
+      <li>Якщо $y$ був коренем, $x$ стає новим коренем (root змінюється).</li>
+    </ul>
+  `,
+  "avlInsert": `
+    <ul>
+      <li><strong>AVL</strong> — це збалансоване BST (висоти піддерев відрізняються не більше ніж на 1).</li>
+      <li><strong>Balance Factor (bf)</strong> = <em>height(left) - height(right)</em>. Допустимі значення: -1, 0, 1.</li>
+      <li>Вставка починається як у звичайному BST.</li>
+      <li>Після вставки ми <strong>піднімаємось назад до кореня</strong> (bottom-up).</li>
+      <li>Перераховуємо <em>height</em> і <em>balance factor</em>.</li>
+      <li>Якщо знайдено перший дисбаланс, визначаємо його тип: LL, RR, LR або RL.</li>
+      <li>LL та RR виправляються одним поворотом, LR та RL — двома.</li>
+    </ul>
+  `,
+  "avlLL": `
+    <ul>
+      <li><strong>Тип LL:</strong> Вставка відбулася в ліве піддерево лівого сина.</li>
+      <li>Ліве піддерево стало занадто "важким".</li>
+      <li>Виправляється одним <strong>RightRotate</strong> навколо незбалансованого вузла.</li>
+    </ul>
+  `,
+  "avlRR": `
+    <ul>
+      <li><strong>Тип RR:</strong> Вставка відбулася в праве піддерево правого сина.</li>
+      <li>Праве піддерево стало занадто "важким".</li>
+      <li>Виправляється одним <strong>LeftRotate</strong> навколо незбалансованого вузла.</li>
+    </ul>
+  `,
+  "avlLR": `
+    <ul>
+      <li><strong>Тип LR:</strong> Вставка відбулася в праве піддерево лівого сина.</li>
+      <li>Це "зигзагоподібний" дисбаланс, один поворот не допоможе.</li>
+      <li>Крок 1: <strong>LeftRotate</strong> навколо лівого сина (перетворює форму на LL).</li>
+      <li>Крок 2: <strong>RightRotate</strong> навколо незбалансованого батька.</li>
+    </ul>
+  `,
+  "avlRL": `
+    <ul>
+      <li><strong>Тип RL:</strong> Вставка відбулася в ліве піддерево правого сина.</li>
+      <li>Це "зигзагоподібний" дисбаланс.</li>
+      <li>Крок 1: <strong>RightRotate</strong> навколо правого сина (перетворює форму на RR).</li>
+      <li>Крок 2: <strong>LeftRotate</strong> навколо незбалансованого батька.</li>
+    </ul>
+  `,
+  "default": \`
+    <ul>
+      <li>Уважно слідкуйте за тим, які вузли є активними.</li>
+      <li>Пояснюйте кожну зміну структури або змінних згідно з алгоритмом.</li>
+      <li>Пам'ятайте про властивості структури даних (інваріанти), що зберігаються на кожному кроці.</li>
+    </ul>
+  \`
+};
+
+const codes = {
+  bstSearch: [
+    "public RecursiveTree Search(RecursiveTree node, int value)",
+    "{",
+    "    if (node == null || node.Value == value)",
+    "        return node;",
+    "    if (value < node.Value)",
+    "        return Search(node.Left, value);",
+    "    return Search(node.Right, value);",
+    "}"
+  ],
+  leftRotate: [
+    "public RecursiveTree LeftRotate(RecursiveTree root, RecursiveTree x)",
+    "{",
+    "    RecursiveTree y = x.Right;",
+    "    RecursiveTree B = y.Left;",
+    "    x.SetRight(B);",
+    "    y.Parent = x.Parent;",
+    "    ReplaceParentChild(root, x, y);",
+    "    y.SetLeft(x);",
+    "    return root;",
+    "}"
+  ],
+  rightRotate: [
+    "public RecursiveTree RightRotate(RecursiveTree root, RecursiveTree y)",
+    "{",
+    "    RecursiveTree x = y.Left;",
+    "    RecursiveTree B = x.Right;",
+    "    y.SetLeft(B);",
+    "    x.Parent = y.Parent;",
+    "    ReplaceParentChild(root, y, x);",
+    "    x.SetRight(y);",
+    "    return root;",
+    "}"
+  ],
+  bstDelete: [
+    "public RecursiveTree TreeDelete(RecursiveTree root, RecursiveTree z)",
+    "{",
+    "    if (z.Left == null)",
+    "        Transplant(root, z, z.Right);",
+    "    else if (z.Right == null)",
+    "        Transplant(root, z, z.Left);",
+    "    else",
+    "    {",
+    "        RecursiveTree y = TreeMinimum(z.Right);",
+    "        if (y.Parent != z)",
+    "        {",
+    "            Transplant(root, y, y.Right);",
+    "            y.SetRight(z.Right);",
+    "        }",
+    "        Transplant(root, z, y);",
+    "        y.SetLeft(z.Left);",
+    "    }",
+    "    return root;",
+    "}"
+  ],
+  avlInsert: [
+    "public Node Insert(Node node, int value)",
+    "{",
+    "    node = BstInsert(node, value);",
+    "    UpdateHeight(node);",
+    "    int balance = GetBalanceFactor(node);",
+    "    if (balance > 1 && value < node.Left.Value)",
+    "        return RightRotate(node);     // LL",
+    "    if (balance < -1 && value > node.Right.Value)",
+    "        return LeftRotate(node);      // RR",
+    "    if (balance > 1 && value > node.Left.Value)",
+    "    {",
+    "        node.Left = LeftRotate(node.Left);",
+    "        return RightRotate(node);     // LR",
+    "    }",
+    "    if (balance < -1 && value < node.Right.Value)",
+    "    {",
+    "        node.Right = RightRotate(node.Right);",
+    "        return LeftRotate(node);      // RL",
+    "    }",
+    "    return node;",
+    "}",
+    "",
+    "private Node LeftRotate(Node x)",
+    "{",
+    "    Node y = x.Right;",
+    "    Node B = y.Left;",
+    "    x.SetRight(B);",
+    "    y.Parent = x.Parent;",
+    "    ReplaceParentChild(x, y);",
+    "    y.SetLeft(x);",
+    "    return y;",
+    "}",
+    "",
+    "private Node RightRotate(Node y)",
+    "{",
+    "    Node x = y.Left;",
+    "    Node B = x.Right;",
+    "    y.SetLeft(B);",
+    "    x.Parent = y.Parent;",
+    "    ReplaceParentChild(y, x);",
+    "    x.SetRight(y);",
+    "    return x;",
+    "}"
+  ]
+};
+
+const scenarioDefinitions = [
+  {
+    id: "bst-search",
+    title: "BST-пошук: знайти 15 у [20, 10, 30, 5, 15]",
+    group: "BST-пошук",
+    topicKey: "bstSearch",
+    quizKey: "bstSearch",
+    codeKey: "bstSearch",
+    build: () => generateSearchScenario([20, 10, 30, 5, 15], 15)
+  },
+  {
+    id: "left-rotate",
+    title: "Лівий поворот: [40, 20, 60, 50, 70], x = 40",
+    group: "Лівий поворот",
+    topicKey: "leftRotate",
+    quizKey: "leftRotate",
+    codeKey: "leftRotate",
+    build: () => generateLeftRotateScenario()
+  },
+  {
+    id: "right-rotate",
+    title: "Правий поворот: [60, 40, 70, 20, 50], y = 60",
+    group: "Правий поворот",
+    topicKey: "rightRotate",
+    quizKey: "rightRotate",
+    codeKey: "rightRotate",
+    build: () => generateRightRotateScenario()
+  },
+  {
+    id: "delete-leaf",
+    title: "BST-видалення: листок, видалити 10",
+    group: "BST-видалення",
+    topicKey: "bstDelete",
+    quizKey: "bstDelete",
+    codeKey: "bstDelete",
+    build: () => generateDeleteLeafScenario()
+  },
+  {
+    id: "delete-one-child",
+    title: "BST-видалення: один син, видалити 10",
+    group: "BST-видалення",
+    topicKey: "bstDelete",
+    quizKey: "bstDelete",
+    codeKey: "bstDelete",
+    build: () => generateDeleteOneChildScenario()
+  },
+  {
+    id: "delete-two-children",
+    title: "BST-видалення: два сини, successor не прямий",
+    group: "BST-видалення",
+    topicKey: "bstDelete",
+    quizKey: "bstDelete",
+    codeKey: "bstDelete",
+    build: () => generateDeleteTwoChildrenScenario()
+  },
+  {
+    id: "avl-ll",
+    title: "AVL-вставка LL: [30, 20, 10]",
+    group: "AVL-вставка",
+    topicKey: "avlInsert",
+    quizKey: "avlLL",
+    codeKey: "avlInsert",
+    build: () => generateAvlScenario("LL", [30, 20, 10])
+  },
+  {
+    id: "avl-rr",
+    title: "AVL-вставка RR: [10, 20, 30]",
+    group: "AVL-вставка",
+    topicKey: "avlInsert",
+    quizKey: "avlRR",
+    codeKey: "avlInsert",
+    build: () => generateAvlScenario("RR", [10, 20, 30])
+  },
+  {
+    id: "avl-lr",
+    title: "AVL-вставка LR: [30, 10, 20]",
+    group: "AVL-вставка",
+    topicKey: "avlInsert",
+    quizKey: "avlLR",
+    codeKey: "avlInsert",
+    build: () => generateAvlScenario("LR", [30, 10, 20])
+  },
+  {
+    id: "avl-rl",
+    title: "AVL-вставка RL: [10, 30, 20]",
+    group: "AVL-вставка",
+    topicKey: "avlInsert",
+    quizKey: "avlRL",
+    codeKey: "avlInsert",
+    build: () => generateAvlScenario("RL", [10, 30, 20])
+  }
+];
+
+const topicDefinitions = [
+  {
+    key: "bstSearch",
+    navGroup: "BST",
+    name: "BST — Пошук",
+    shortName: "Пошук",
+    description: "Побачиш, як дерево відсікає половину варіантів на кожному порівнянні.",
+    badge: "1 сценарій",
+    accent: "#3b82f6",
+    icon: "tree",
+    scenarioIds: ["bst-search"],
+    customType: "search"
+  },
+  {
+    key: "bstDelete",
+    navGroup: "BST",
+    name: "BST — Видалення",
+    shortName: "Видалення",
+    description: "Розбереш листок, один син і складний випадок із successor.",
+    badge: "3 сценарії",
+    accent: "#3b82f6",
+    icon: "tree",
+    scenarioIds: ["delete-leaf", "delete-one-child", "delete-two-children"],
+    customType: "delete"
+  },
+  {
+    key: "leftRotate",
+    navGroup: "Повороти",
+    name: "Лівий поворот",
+    shortName: "Лівий поворот",
+    description: "Покроково побачиш, як правий син піднімається над вузлом.",
+    badge: "1 сценарій",
+    accent: "#f59e0b",
+    icon: "rotateLeft",
+    scenarioIds: ["left-rotate"],
+    customType: "leftRotate"
+  },
+  {
+    key: "rightRotate",
+    navGroup: "Повороти",
+    name: "Правий поворот",
+    shortName: "Правий поворот",
+    description: "Дзеркальний поворот із переносом піддерева B без втрати BST-порядку.",
+    badge: "1 сценарій",
+    accent: "#f59e0b",
+    icon: "rotateRight",
+    scenarioIds: ["right-rotate"],
+    customType: "rightRotate"
+  },
+  {
+    key: "avlInsert",
+    navGroup: "AVL",
+    name: "AVL — Вставка",
+    shortName: "Вставка",
+    description: "Вставка, підйом до кореня, перерахунок висот і балансування.",
+    badge: "4 сценарії",
+    accent: "#22c55e",
+    icon: "balance",
+    scenarioIds: ["avl-ll", "avl-rr", "avl-lr", "avl-rl"],
+    customType: "avl"
+  },
+  {
+    key: "avlCases",
+    navGroup: "AVL",
+    name: "AVL — Випадки LL / RR / LR / RL",
+    shortName: "Випадки LL/RR/LR/RL",
+    description: "Порівняєш одиночні та подвійні повороти в AVL.",
+    badge: "4 сценарії",
+    accent: "#22c55e",
+    icon: "balance",
+    scenarioIds: ["avl-ll", "avl-rr", "avl-lr", "avl-rl"],
+    customType: "avl"
+  }
+];
+
+const quizDefinitions = {
+  bstSearch: {
+    title: "Квіз: BST-пошук",
+    questions: [
+      {
+        text: "Що визначає напрямок руху під час BST-пошуку?",
+        options: ["Висота вузла", "Порівняння шуканого значення з поточним вузлом", "Кількість листків", "Колір вузла"],
+        correct: 1,
+        why: "Якщо value менше за node.Value, йдемо ліворуч; якщо більше — праворуч."
+      },
+      {
+        text: "Коли BST-пошук завершується успішно?",
+        options: ["Коли дійшли до root", "Коли node.Value дорівнює шуканому значенню", "Коли balance factor = 0", "Після трьох порівнянь"],
+        correct: 1,
+        why: "Успіх означає, що поточний вузол містить потрібне значення."
+      },
+      {
+        text: "Що означає node == null під час пошуку?",
+        options: ["Дерево збалансоване", "Значення не знайдено", "Потрібен поворот", "Знайдено successor"],
+        correct: 1,
+        why: "Null означає, що потрібної гілки більше немає, тож значення відсутнє."
+      }
+    ]
+  },
+  bstDelete: {
+    title: "Квіз: BST-видалення",
+    questions: [
+      {
+        text: "Що таке successor вузла z?",
+        options: ["Максимум лівого піддерева", "Мінімум правого піддерева", "Батько z", "Правий син z"],
+        correct: 1,
+        why: "Successor — це наступне більше значення, тобто мінімум правого піддерева."
+      },
+      {
+        text: "Що робить Transplant(u, v)?",
+        options: ["Копіює значення v в u", "Видаляє v", "Ставить v на місце u в дереві", "Міняє u і v місцями"],
+        correct: 2,
+        why: "Transplant перепідключає батька u так, щоб він посилався на v."
+      },
+      {
+        text: "Коли successor y не є прямим правим сином z, що треба зробити спочатку?",
+        options: ["Видалити y", "Вирізати y зі старого місця через Transplant(y, y.Right)", "Переставити z", "Нічого"],
+        correct: 1,
+        why: "Інакше successor залишиться у старому місці й одночасно стане заміною z."
+      }
+    ]
+  },
+  leftRotate: {
+    title: "Квіз: лівий поворот",
+    questions: [
+      {
+        text: "Який вузол піднімається вгору при LeftRotate(x)?",
+        options: ["x", "x.Right", "x.Left", "x.Parent"],
+        correct: 1,
+        why: "Лівий поворот піднімає правого сина x, тобто y = x.Right."
+      },
+      {
+        text: "Що відбувається з вузлом B (y.Left) під час LeftRotate?",
+        options: ["Видаляється", "Стає правим сином x", "Стає лівим сином x", "Не змінюється"],
+        correct: 1,
+        why: "B лежить між x та y, тому після повороту має стати x.Right."
+      },
+      {
+        text: "Чи зберігається BST-інваріант після LeftRotate?",
+        options: ["Так, якщо перед поворотом виконувалося x < B < y", "Ні, ламається", "Тільки якщо дерево ідеально збалансоване", "Тільки для AVL"],
+        correct: 0,
+        why: "Поворот не міняє порядок значень, він лише перепідключає ребра."
+      }
+    ]
+  },
+  rightRotate: {
+    title: "Квіз: правий поворот",
+    questions: [
+      {
+        text: "Який вузол піднімається вгору при RightRotate(y)?",
+        options: ["y", "y.Right", "y.Left", "root завжди"],
+        correct: 2,
+        why: "Правий поворот піднімає лівого сина y, тобто x = y.Left."
+      },
+      {
+        text: "Що стається з B = x.Right під час RightRotate?",
+        options: ["Стає лівим сином y", "Стає правим сином y", "Видаляється", "Стає root завжди"],
+        correct: 0,
+        why: "B лежить між x та y, тому після повороту має бути y.Left."
+      },
+      {
+        text: "Навіщо потрібен RightRotate?",
+        options: ["Щоб прибрати всі листки", "Щоб підняти ліве піддерево без порушення BST", "Щоб знайти successor", "Щоб поміняти значення вузлів"],
+        correct: 1,
+        why: "Поворот змінює форму дерева, але не порядок значень."
+      }
+    ]
+  },
+  avlLL: {
+    title: "Квіз: AVL LL",
+    questions: [
+      {
+        text: "Яке значення balance factor вважається порушенням AVL?",
+        options: ["0", "+1 або -1", "+2 або -2", "будь-яке невід'ємне"],
+        correct: 2,
+        why: "AVL дозволяє тільки -1, 0 або +1; +2 чи -2 означає дисбаланс."
+      },
+      {
+        text: "Який поворот виконується при випадку LL?",
+        options: ["LeftRotate", "RightRotate", "Подвійний поворот", "Жодного"],
+        correct: 1,
+        why: "LL означає важке ліве-ліве плече, тому потрібен RightRotate."
+      },
+      {
+        text: "Що означає випадок LL?",
+        options: ["Два лівих повороти поспіль", "Новий вузол вставлено в ліве піддерево лівого сина", "Обидва сини мають від'ємний balance", "Left-Right дисбаланс"],
+        correct: 1,
+        why: "Шлях вставки йде ліворуч, потім ще раз ліворуч."
+      }
+    ]
+  },
+  avlRR: {
+    title: "Квіз: AVL RR",
+    questions: [
+      {
+        text: "Який balance factor показує занадто важке праве піддерево?",
+        options: ["+2", "-2", "0", "+1"],
+        correct: 1,
+        why: "bf = leftHeight - rightHeight, тому важке праве піддерево дає від'ємне значення."
+      },
+      {
+        text: "Який поворот потрібен у випадку RR?",
+        options: ["RightRotate", "LeftRotate", "RightRotate потім LeftRotate", "Transplant"],
+        correct: 1,
+        why: "RR виправляється одним LeftRotate."
+      },
+      {
+        text: "Що піднімається при RR-балансуванні?",
+        options: ["Лівий син", "Правий син", "Successor", "Parent"],
+        correct: 1,
+        why: "LeftRotate піднімає правого сина дисбалансного вузла."
+      }
+    ]
+  },
+  avlLR: {
+    title: "Квіз: AVL LR",
+    questions: [
+      {
+        text: "Скільки поворотів потрібно для LR?",
+        options: ["0", "1", "2", "3"],
+        correct: 2,
+        why: "LR — це подвійний поворот: LeftRotate(leftChild), потім RightRotate."
+      },
+      {
+        text: "Який перший поворот у LR?",
+        options: ["RightRotate(node)", "LeftRotate(leftChild)", "LeftRotate(node)", "Transplant"],
+        correct: 1,
+        why: "Спочатку вирівнюємо лівого сина лівим поворотом."
+      },
+      {
+        text: "Навіщо перший поворот у LR?",
+        options: ["Щоб зробити форму LL", "Щоб видалити вузол", "Щоб знайти root", "Щоб скинути height"],
+        correct: 0,
+        why: "Після першого повороту другий стандартний RightRotate завершує балансування."
+      }
+    ]
+  },
+  avlRL: {
+    title: "Квіз: AVL RL",
+    questions: [
+      {
+        text: "Скільки поворотів потрібно для RL?",
+        options: ["0", "1", "2", "4"],
+        correct: 2,
+        why: "RL — це подвійний поворот: RightRotate(rightChild), потім LeftRotate."
+      },
+      {
+        text: "Який перший поворот у RL?",
+        options: ["LeftRotate(node)", "RightRotate(rightChild)", "RightRotate(node)", "TreeMinimum"],
+        correct: 1,
+        why: "Спочатку вирівнюємо правого сина правим поворотом."
+      },
+      {
+        text: "На що перетворюється RL після першого повороту?",
+        options: ["LL", "RR", "BST-видалення", "випадок листка"],
+        correct: 1,
+        why: "Після RightRotate(rightChild) ситуація стає RR і завершується LeftRotate."
+      }
+    ]
+  }
+};
 
 function readProgress() {
   try {
@@ -197,235 +711,208 @@ function showVisualizer() {
   visualizerScreen.classList.remove("hidden");
 }
 
-function firstSentence(text) {
-  const source = String(text ?? "").trim();
-  const match = source.match(/[^.!?]+[.!?]/);
-  return match ? match[0].trim() : source;
+class TreeNode {
+  constructor(value) {
+    this.id = nodeId(value);
+    this.value = value;
+    this.left = null;
+    this.right = null;
+    this.parent = null;
+    this.height = 1;
+    this.balanceFactor = 0;
+  }
 }
 
-function buildDeepExplanation(mediumText, invariantText) {
-  const base = String(mediumText ?? "").trim();
-  const invariant = String(invariantText ?? "").trim();
-  if (!base) {
-    return invariant;
-  }
-
-  if (!invariant) {
-    return base;
-  }
-
-  return `${base} Invariant detail: ${invariant}`;
+function nodeId(value) {
+  return `n${value}`;
 }
 
-function toNodeId(candidate) {
-  if (!candidate) {
-    return null;
-  }
-
-  if (typeof candidate === "string") {
-    return candidate;
-  }
-
-  if (typeof candidate === "number") {
-    return `n${candidate}`;
-  }
-
-  if (typeof candidate === "object" && typeof candidate.id === "string") {
-    return candidate.id;
-  }
-
-  return null;
+function valueOf(node) {
+  return node ? node.value : null;
 }
 
-function normalizeRoleName(role) {
-  const normalized = String(role ?? "").trim().toLowerCase();
-  const map = {
-    current: "role-current",
-    parent: "role-parent",
-    successor: "role-successor",
-    "b-subtree": "role-b-subtree",
-    bsubtree: "role-b-subtree",
-    "rotation-pivot": "role-rotation-pivot",
-    rotationpivot: "role-rotation-pivot",
-    imbalanced: "role-imbalanced",
-    inserted: "role-inserted",
-    root: "role-root",
-    "moved-subtree": "role-moved-subtree",
-    movedsubtree: "role-moved-subtree"
+function buildBst(values) {
+  const tree = {
+    root: null,
+    nodes: new Map()
   };
 
-  if (map[normalized]) {
-    return map[normalized];
-  }
-
-  return normalized.startsWith("role-") ? normalized : `role-${normalized}`;
+  values.forEach((value) => insertPlain(tree, value));
+  recomputeAll(tree);
+  return tree;
 }
 
-function addRole(bucket, nodeIdValue, role) {
-  if (!nodeIdValue || !role) {
+function insertPlain(tree, value) {
+  const node = new TreeNode(value);
+  tree.nodes.set(node.id, node);
+
+  if (!tree.root) {
+    tree.root = node;
+    return node;
+  }
+
+  let current = tree.root;
+  let parent = null;
+
+  while (current) {
+    parent = current;
+    current = value < current.value ? current.left : current.right;
+  }
+
+  node.parent = parent;
+
+  if (value < parent.value) {
+    parent.left = node;
+  } else {
+    parent.right = node;
+  }
+
+  recomputeAll(tree);
+  return node;
+}
+
+function find(tree, value) {
+  return tree.nodes.get(nodeId(value)) ?? null;
+}
+
+function setLeft(parent, child) {
+  parent.left = child;
+  if (child) {
+    child.parent = parent;
+  }
+}
+
+function setRight(parent, child) {
+  parent.right = child;
+  if (child) {
+    child.parent = parent;
+  }
+}
+
+function replaceAtParent(tree, oldNode, newNode) {
+  const parent = oldNode.parent;
+
+  if (!parent) {
+    tree.root = newNode;
+  } else if (parent.left === oldNode) {
+    parent.left = newNode;
+  } else if (parent.right === oldNode) {
+    parent.right = newNode;
+  }
+
+  if (newNode) {
+    newNode.parent = parent;
+  }
+}
+
+function detachFromParent(tree, node) {
+  if (!node.parent) {
+    tree.root = null;
     return;
   }
 
-  const normalizedRole = normalizeRoleName(role);
-  if (!bucket[nodeIdValue]) {
-    bucket[nodeIdValue] = [];
+  if (node.parent.left === node) {
+    node.parent.left = null;
+  } else if (node.parent.right === node) {
+    node.parent.right = null;
   }
 
-  if (!bucket[nodeIdValue].includes(normalizedRole)) {
-    bucket[nodeIdValue].push(normalizedRole);
-  }
+  node.parent = null;
 }
 
-function resolveActiveNodeIds(options) {
-  const ids = [];
-  (options.activeNodeIds ?? []).forEach((entry) => {
-    const id = toNodeId(entry);
-    if (id) {
-      ids.push(id);
+function transplant(tree, oldNode, newNode) {
+  replaceAtParent(tree, oldNode, newNode);
+  oldNode.parent = null;
+  oldNode.left = null;
+  oldNode.right = null;
+}
+
+function treeMinimum(node) {
+  let current = node;
+  while (current.left) {
+    current = current.left;
+  }
+  return current;
+}
+
+function recomputeAll(tree) {
+  const seen = new Set();
+
+  function height(node) {
+    if (!node || seen.has(node.id)) {
+      return node ? node.height : 0;
+    }
+
+    seen.add(node.id);
+    const leftHeight = height(node.left);
+    const rightHeight = height(node.right);
+    node.height = Math.max(leftHeight, rightHeight) + 1;
+    node.balanceFactor = leftHeight - rightHeight;
+    return node.height;
+  }
+
+  if (tree.root) {
+    height(tree.root);
+  }
+
+  tree.nodes.forEach((node) => {
+    if (!seen.has(node.id)) {
+      height(node);
     }
   });
+}
 
-  (options.activeNodes ?? []).forEach((entry) => {
-    const id = toNodeId(entry);
-    if (id) {
-      ids.push(id);
-    }
+function serializeTree(tree, detachedRootIds = []) {
+  recomputeAll(tree);
+
+  const nodes = {};
+  tree.nodes.forEach((node) => {
+    nodes[node.id] = {
+      id: node.id,
+      value: node.value,
+      left: node.left ? node.left.id : null,
+      right: node.right ? node.right.id : null,
+      parent: node.parent ? node.parent.id : null,
+      height: node.height,
+      balanceFactor: node.balanceFactor
+    };
   });
 
-  return [...new Set(ids)];
-}
-
-function resolveNodeRoles(options, activeNodeIds, rootId) {
-  const roles = {};
-
-  const explicit = options.nodeRoles;
-  if (explicit && typeof explicit === "object") {
-    Object.entries(explicit).forEach(([key, value]) => {
-      const nodeIdValue = toNodeId(key) || toNodeId(value);
-      if (!nodeIdValue) {
-        return;
-      }
-
-      if (Array.isArray(value)) {
-        value.forEach((role) => addRole(roles, nodeIdValue, role));
-      } else if (typeof value === "string") {
-        addRole(roles, nodeIdValue, value);
-      }
-    });
-  }
-
-  if (Object.keys(roles).length === 0) {
-    activeNodeIds.forEach((id) => addRole(roles, id, "current"));
-  }
-
-  if (rootId && (!roles[rootId] || roles[rootId].length === 0)) {
-    addRole(roles, rootId, "root");
-  }
-
-  return roles;
-}
-
-function inferScenarioType(options) {
-  if (options.validationContext?.scenarioType) {
-    return options.validationContext.scenarioType;
-  }
-
-  if (options.showAvlLabels) {
-    return "avl";
-  }
-
-  const operationLabel = String(options.operationLabel ?? "").toLowerCase();
-  if (operationLabel.includes("rotate")) {
-    return "rotate";
-  }
-
-  return "bst";
-}
-
-function inferValidationPhase(options, scenarioType) {
-  if (options.validationContext?.phase) {
-    return options.validationContext.phase;
-  }
-
-  if (scenarioType === "avl") {
-    return options.finalStep ? "final" : "intermediate";
-  }
-
-  return "final";
-}
-
-function collectUnexpectedValidationWarnings(validationContext, scenarioType, phase) {
-  const issues = [];
-
-  if (!validationContext || typeof validationContext !== "object") {
-    return issues;
-  }
-
-  if (validationContext.bst && validationContext.bst.ok === false) {
-    issues.push("BST invariant broken");
-  }
-
-  if (validationContext.parentLinks && validationContext.parentLinks.ok === false) {
-    issues.push("Parent links broken");
-  }
-
-  if (scenarioType === "avl" && (phase === "final" || phase === "balanced")) {
-    if (validationContext.avl && validationContext.avl.ok === false) {
-      issues.push("Final AVL state broken");
-    }
-  }
-
-  return issues;
-}
-
-function addStep(targetSteps, tree, options = {}) {
-  try {
-    recomputeAll(tree);
-  } catch {
-    // Keep step generation resilient for partial states.
-  }
-
-  const explanationMedium = options.explanationMedium ?? options.explanationNormal ?? options.explanation ?? "";
-  const invariant = options.invariant ?? "BST ??????? ?????????: ????? < ????? < ??????.";
-  const scenarioType = inferScenarioType(options);
-  const phase = inferValidationPhase(options, scenarioType);
-  const validationContext = options.validationContext ?? buildInvariantStatus(tree.root, scenarioType, phase);
-  const invariantStatus = options.invariantStatus ?? validationContext?.overall ?? "ok";
-
-  const activeNodeIds = resolveActiveNodeIds(options);
-  const nodeRoles = resolveNodeRoles(options, activeNodeIds, tree.root?.id ?? null);
-
-  const step = {
-    treeSnapshot: serializeTree(tree, options.detachedRootIds ?? []),
-    activeNodeIds,
-    activeNodes: options.activeNodes ?? activeNodeIds,
-    nodeRoles,
-    codeLine: options.codeLine ?? options.highlightedCodeLine ?? 0,
-    highlightedCodeLine: options.highlightedCodeLine ?? options.codeLine ?? 0,
-    variables: options.variables ?? {},
-    explanation: explanationMedium,
-    explanationShort: options.explanationShort ?? firstSentence(explanationMedium),
-    explanationMedium,
-    explanationNormal: explanationMedium,
-    explanationDeep: options.explanationDeep ?? buildDeepExplanation(explanationMedium, invariant),
-    invariant,
-    invariantStatus,
-    validationContext,
-    operationLabel: options.operationLabel ?? null,
-    showAvlLabels: Boolean(options.showAvlLabels),
-    quiz: options.quiz ?? null
+  return {
+    rootId: tree.root ? tree.root.id : null,
+    detachedRootIds: detachedRootIds.filter((id) => id && id !== (tree.root && tree.root.id)),
+    nodes
   };
+}
 
-  targetSteps.push(step);
+function firstSentence(text) {
+  const match = String(text ?? "").match(/[^.!?。]+[.!?。]/);
+  return match ? match[0].trim() : String(text ?? "").trim();
+}
 
-  const warnReasons = collectUnexpectedValidationWarnings(validationContext, scenarioType, phase);
-  if (warnReasons.length > 0) {
-    console.warn(`[validation] ${warnReasons.join('; ')}`, {
-      scenarioType,
-      phase,
-      variables: step.variables
-    });
-  }
+function buildDeepExplanation(normalText, invariantText) {
+  const base = String(normalText ?? "").trim();
+  const invariant = String(invariantText ?? "").trim();
+  return `${base} Важливо для коректності алгоритму: цей крок не є декоративним, він зберігає потрібні зв'язки між піддеревами, щоб наступні операції працювали з правильними parent/child-посиланнями. ${invariant}`;
+}
+
+function addStep(targetSteps, tree, options) {
+  const normal = options.explanationNormal ?? options.explanation ?? "";
+  const invariant = options.invariant ?? "BST порядок збережено: лівий < вузол < правий.";
+
+  targetSteps.push({
+    treeSnapshot: serializeTree(tree, options.detachedRootIds ?? []),
+    activeNodeIds: options.activeNodeIds ?? [],
+    codeLine: options.codeLine ?? 0,
+    variables: options.variables ?? {},
+    explanation: normal,
+    explanationShort: options.explanationShort ?? firstSentence(normal),
+    explanationNormal: normal,
+    explanationDeep: options.explanationDeep ?? buildDeepExplanation(normal, invariant),
+    invariant,
+    invariantStatus: options.invariantStatus ?? "ok",
+    showAvlLabels: Boolean(options.showAvlLabels)
+  });
 }
 
 function generateSearchScenario(values = [20, 10, 30, 5, 15], target = 15) {
@@ -436,7 +923,6 @@ function generateSearchScenario(values = [20, 10, 30, 5, 15], target = 15) {
 
   addStep(steps, tree, {
     activeNodeIds: current ? [current.id] : [],
-    nodeRoles: current ? { [current.id]: "current" } : {},
     codeLine: 0,
     variables: { node: valueOf(current), parent: null, target, root: valueOf(tree.root) },
     explanation: `Починаємо BST-пошук значення ${target} з кореня ${valueOf(tree.root)}. Це потрібно, бо правило BST гарантує, що всі менші значення лежать ліворуч, а всі більші — праворуч; після цього кроку поточним вузлом стає root.`,
@@ -446,14 +932,6 @@ function generateSearchScenario(values = [20, 10, 30, 5, 15], target = 15) {
   while (current) {
     addStep(steps, tree, {
       activeNodeIds: [current.id],
-      nodeRoles: parent
-        ? {
-            [current.id]: "current",
-            [parent.id]: "parent"
-          }
-        : {
-            [current.id]: "current"
-          },
       codeLine: 2,
       variables: { node: current.value, parent: valueOf(parent), target, root: valueOf(tree.root) },
       explanation: `Порівнюємо target = ${target} із поточним вузлом ${current.value}. Це потрібно, щоб зрозуміти, чи знайдено значення, чи можна відкинути одну половину дерева; після цього кроку алгоритм або завершується, або обирає напрямок руху.`,
@@ -463,14 +941,6 @@ function generateSearchScenario(values = [20, 10, 30, 5, 15], target = 15) {
     if (current.value === target) {
       addStep(steps, tree, {
         activeNodeIds: [current.id],
-        nodeRoles: parent
-          ? {
-              [current.id]: "current",
-              [parent.id]: "parent"
-            }
-          : {
-              [current.id]: "current"
-            },
         codeLine: 3,
         variables: { node: `${current.value} ← знайдено`, parent: valueOf(parent), target, root: valueOf(tree.root) },
         explanation: `Значення знайдено: node.Value дорівнює target = ${target}. Це завершує BST-пошук, бо алгоритм повертає перший вузол із потрібним значенням; після цього кроку результатом є вузол ${current.value}.`,
@@ -484,14 +954,6 @@ function generateSearchScenario(values = [20, 10, 30, 5, 15], target = 15) {
       current = current.left;
       addStep(steps, tree, {
         activeNodeIds: current ? [parent.id, current.id] : [parent.id],
-        nodeRoles: current
-          ? {
-              [current.id]: "current",
-              [parent.id]: "parent"
-            }
-          : {
-              [parent.id]: "parent"
-            },
         codeLine: 5,
         variables: { node: valueOf(current), parent: parent.value, target, root: valueOf(tree.root) },
         explanation: `target = ${target} менший за ${parent.value}, тому переходимо в ліве піддерево. Це потрібно, бо всі значення праворуч від ${parent.value} більші за нього і не можуть дорівнювати target; після цього кроку node вказує на ${formatValue(valueOf(current))}.`,
@@ -501,14 +963,6 @@ function generateSearchScenario(values = [20, 10, 30, 5, 15], target = 15) {
       current = current.right;
       addStep(steps, tree, {
         activeNodeIds: current ? [parent.id, current.id] : [parent.id],
-        nodeRoles: current
-          ? {
-              [current.id]: "current",
-              [parent.id]: "parent"
-            }
-          : {
-              [parent.id]: "parent"
-            },
         codeLine: 6,
         variables: { node: valueOf(current), parent: parent.value, target, root: valueOf(tree.root) },
         explanation: `target = ${target} більший за ${parent.value}, тому переходимо в праве піддерево. Це потрібно, бо всі значення ліворуч від ${parent.value} менші за нього і не можуть дорівнювати target; після цього кроку node вказує на ${formatValue(valueOf(current))}.`,
@@ -518,7 +972,6 @@ function generateSearchScenario(values = [20, 10, 30, 5, 15], target = 15) {
   }
 
   addStep(steps, tree, {
-    nodeRoles: parent ? { [parent.id]: "parent" } : {},
     codeLine: 2,
     variables: { node: null, parent: valueOf(parent), target, root: valueOf(tree.root) },
     explanation: `Поточний node став null, тому значення ${target} не знайдено в дереві. Це означає, що коректний шлях пошуку закінчився без збігу; після цього кроку алгоритм повертає null.`,
@@ -537,9 +990,6 @@ function generateLeftRotateScenario() {
 
   addStep(steps, tree, {
     activeNodeIds: [x.id],
-    nodeRoles: {
-      [x.id]: "rotation-pivot"
-    },
     codeLine: 0,
     variables: { x: 40, y: null, B: null, root: 40 },
     explanation: "Початковий стан: x = 40 є коренем піддерева, яке треба повернути вліво, бо правий син y = 60 має піднятися вище без порушення BST-порядку. Після цього кроку вказівники ще не змінені, ми лише визначили вузол, навколо якого буде поворот.",
@@ -548,10 +998,6 @@ function generateLeftRotateScenario() {
 
   addStep(steps, tree, {
     activeNodeIds: [x.id, y.id],
-    nodeRoles: {
-      [x.id]: "rotation-pivot",
-      [y.id]: "current"
-    },
     codeLine: 2,
     variables: { x: 40, y: 60, B: 50, root: 40 },
     explanation: "Зберігаємо y = x.Right, тобто y стає вузол 60. Це потрібно, бо саме правий син x підніматиметься на місце x під час лівого повороту, а результатом цього кроку є зафіксована змінна y для наступних перепідключень.",
@@ -564,11 +1010,6 @@ function generateLeftRotateScenario() {
   addStep(steps, tree, {
     detachedRootIds: [y.id],
     activeNodeIds: [x.id, y.id, b.id],
-    nodeRoles: {
-      [x.id]: "rotation-pivot",
-      [y.id]: "current",
-      [b.id]: "b-subtree"
-    },
     codeLine: 4,
     variables: { x: 40, y: 60, B: 50, root: 40 },
     explanation: "Виконуємо x.SetRight(y.Left): вузол B = 50 переходить із лівого посилання y у праве посилання x. Це необхідно, бо B більший за x, але менший за y, тому після повороту він має бути правим сином x; у результаті x.Right уже вказує на 50.",
@@ -579,10 +1020,6 @@ function generateLeftRotateScenario() {
   addStep(steps, tree, {
     detachedRootIds: [y.id],
     activeNodeIds: [x.id, y.id],
-    nodeRoles: {
-      [x.id]: "rotation-pivot",
-      [y.id]: "current"
-    },
     codeLine: 5,
     variables: { x: 40, y: "60, Parent = null", B: 50, root: 40 },
     explanation: "Виконуємо y.Parent = x.Parent: батьківський вказівник y стає таким самим, як був у x. Це потрібно, щоб y міг зайняти позицію x у батьківській ієрархії; після цього y уже готовий стати новою вершиною піддерева.",
@@ -594,10 +1031,6 @@ function generateLeftRotateScenario() {
   addStep(steps, tree, {
     detachedRootIds: [x.id],
     activeNodeIds: [x.id, y.id],
-    nodeRoles: {
-      [x.id]: "rotation-pivot",
-      [y.id]: "current"
-    },
     codeLine: 6,
     variables: { x: 40, y: 60, B: 50, root: "60 ← новий root" },
     explanation: "Виконуємо ReplaceParentChild(root, x, y): оскільки x був коренем, root перемикається з 40 на 60. Це потрібно, щоб дерево тримало зверху вузол y, і після цього кроку саме 60 стає новим коренем піддерева.",
@@ -607,10 +1040,6 @@ function generateLeftRotateScenario() {
   setLeft(y, x);
   addStep(steps, tree, {
     activeNodeIds: [x.id, y.id],
-    nodeRoles: {
-      [x.id]: "rotation-pivot",
-      [y.id]: "current"
-    },
     codeLine: 7,
     variables: { x: 40, y: 60, B: 50, root: 60 },
     explanation: "Виконуємо y.SetLeft(x): вузол x = 40 стає лівим сином y = 60. Це потрібно, бо всі значення під x менші за y, і після цього кроку лівий поворот завершено: 60 зверху, 40 ліворуч, B = 50 праворуч від 40.",
@@ -629,9 +1058,6 @@ function generateRightRotateScenario() {
 
   addStep(steps, tree, {
     activeNodeIds: [y.id],
-    nodeRoles: {
-      [y.id]: "rotation-pivot"
-    },
     codeLine: 0,
     variables: { x: null, y: 60, B: null, root: 60 },
     explanation: "Початковий стан: y = 60 є коренем піддерева, яке треба повернути вправо, бо лівий син x = 40 має піднятися вище без порушення BST-порядку. Після цього кроку вказівники ще не змінені.",
@@ -640,10 +1066,6 @@ function generateRightRotateScenario() {
 
   addStep(steps, tree, {
     activeNodeIds: [x.id, y.id],
-    nodeRoles: {
-      [x.id]: "current",
-      [y.id]: "rotation-pivot"
-    },
     codeLine: 2,
     variables: { x: 40, y: 60, B: 50, root: 60 },
     explanation: "Зберігаємо x = y.Left, тобто x стає вузол 40. Це потрібно, бо саме лівий син y підніматиметься на місце y під час правого повороту, а результатом цього кроку є зафіксована змінна x для наступних перепідключень.",
@@ -656,11 +1078,6 @@ function generateRightRotateScenario() {
   addStep(steps, tree, {
     detachedRootIds: [x.id],
     activeNodeIds: [x.id, y.id, b.id],
-    nodeRoles: {
-      [x.id]: "current",
-      [y.id]: "rotation-pivot",
-      [b.id]: "b-subtree"
-    },
     codeLine: 4,
     variables: { x: 40, y: 60, B: 50, root: 60 },
     explanation: "Виконуємо y.SetLeft(x.Right): вузол B = 50 переходить із правого посилання x у ліве посилання y. Це необхідно, бо B більший за x, але менший за y, тому після повороту він має бути лівим сином y; у результаті y.Left уже вказує на 50.",
@@ -671,10 +1088,6 @@ function generateRightRotateScenario() {
   addStep(steps, tree, {
     detachedRootIds: [x.id],
     activeNodeIds: [x.id, y.id],
-    nodeRoles: {
-      [x.id]: "current",
-      [y.id]: "rotation-pivot"
-    },
     codeLine: 5,
     variables: { x: "40, Parent = null", y: 60, B: 50, root: 60 },
     explanation: "Виконуємо x.Parent = y.Parent: батьківський вказівник x стає таким самим, як був у y. Це потрібно, щоб x міг зайняти позицію y у батьківській ієрархії; після цього x готовий стати новою вершиною піддерева.",
@@ -686,10 +1099,6 @@ function generateRightRotateScenario() {
   addStep(steps, tree, {
     detachedRootIds: [y.id],
     activeNodeIds: [x.id, y.id],
-    nodeRoles: {
-      [x.id]: "current",
-      [y.id]: "rotation-pivot"
-    },
     codeLine: 6,
     variables: { x: 40, y: 60, B: 50, root: "40 ← новий root" },
     explanation: "Виконуємо ReplaceParentChild(root, y, x): оскільки y був коренем, root перемикається з 60 на 40. Це потрібно, щоб дерево тримало зверху вузол x, і після цього кроку саме 40 стає новим коренем піддерева.",
@@ -699,10 +1108,6 @@ function generateRightRotateScenario() {
   setRight(x, y);
   addStep(steps, tree, {
     activeNodeIds: [x.id, y.id],
-    nodeRoles: {
-      [x.id]: "current",
-      [y.id]: "rotation-pivot"
-    },
     codeLine: 7,
     variables: { x: 40, y: 60, B: 50, root: 40 },
     explanation: "Виконуємо x.SetRight(y): вузол y = 60 стає правим сином x = 40. Це потрібно, бо всі значення під y більші за x, і після цього кроку правий поворот завершено: 40 зверху, 60 праворуч, B = 50 ліворуч від 60.",
@@ -719,9 +1124,6 @@ function generateDeleteLeafScenario() {
 
   addStep(steps, tree, {
     activeNodeIds: [z.id],
-    nodeRoles: {
-      [z.id]: "current"
-    },
     codeLine: 0,
     variables: { z: 10, y: null, parent: 20 },
     explanation: "Знайдено z = 10, вузол для видалення, і його батьком є 20. Це потрібно зробити перед будь-яким Transplant, бо алгоритм має знати, яке саме посилання батька буде змінено; після цього кроку ми готові перевіряти дітей z.",
@@ -804,9 +1206,6 @@ function generateDeleteTwoChildrenScenario() {
 
   addStep(steps, tree, {
     activeNodeIds: [z.id, z.right.id],
-    nodeRoles: {
-      [z.id]: "current"
-    },
     codeLine: 6,
     variables: { z: 10, y: null, parent: 20 },
     explanation: "z має двох дітей, тому просте вирізання зруйнувало б зв'язок із одним із піддерев. За правилом BST-видалення треба знайти successor = TreeMinimum(z.Right), бо саме найменший вузол правого піддерева може замінити z і зберегти порядок.",
@@ -815,10 +1214,6 @@ function generateDeleteTwoChildrenScenario() {
 
   addStep(steps, tree, {
     activeNodeIds: [y.id],
-    nodeRoles: {
-      [z.id]: "current",
-      [y.id]: "successor"
-    },
     codeLine: 8,
     variables: { z: 10, y: 12, parent: 15 },
     explanation: "Successor y знайдено: це вузол 12, мінімум правого піддерева z. Це правильно, бо 12 є першим значенням після 10 в BST-порядку; після цього кроку y буде кандидатом на місце z.",
@@ -829,10 +1224,6 @@ function generateDeleteTwoChildrenScenario() {
   addStep(steps, tree, {
     detachedRootIds: [y.id],
     activeNodeIds: [y.id, yOldParent.id],
-    nodeRoles: {
-      [z.id]: "current",
-      [y.id]: "successor"
-    },
     codeLine: 11,
     variables: { z: 10, y: "12 ← вирізано зі старого місця", parent: "15.Left = null" },
     explanation: "Оскільки y.Parent != z, спочатку виконуємо Transplant(y, y.Right): посилання parent.Left у вузлі 15 перемикається з 12 на y.Right, тобто на null. Це потрібно, щоб successor не залишився одночасно у старому місці й на місці z; після цього y тимчасово від'єднаний.",
@@ -843,11 +1234,6 @@ function generateDeleteTwoChildrenScenario() {
   addStep(steps, tree, {
     detachedRootIds: [y.id],
     activeNodeIds: [y.id, zRight.id],
-    nodeRoles: {
-      [z.id]: "current",
-      [y.id]: "successor",
-      [zRight.id]: "moved-subtree"
-    },
     codeLine: 12,
     variables: { z: 10, y: "12.Right = 15", parent: 20 },
     explanation: "Виконуємо y.SetRight(z.Right): праве піддерево z, вузол 15, переходить під successor y = 12. Це потрібно, бо після заміни z вузол 12 має зберегти всі значення, які були праворуч від 10; після цього 15 уже є правим сином 12.",
@@ -858,10 +1244,6 @@ function generateDeleteTwoChildrenScenario() {
   addStep(steps, tree, {
     detachedRootIds: [z.id],
     activeNodeIds: [z.id, y.id],
-    nodeRoles: {
-      [z.id]: "current",
-      [y.id]: "successor"
-    },
     codeLine: 14,
     variables: { z: "10 ← вирізано", y: "12 ← на місці z", parent: "20.Left = 12" },
     explanation: "Виконуємо Transplant(z, y): посилання parent.Left у вузлі 20 перемикається з 10 на successor 12. Це потрібно, щоб y фізично зайняв позицію z у дереві, і після цього вузол 10 уже не є частиною основного BST.",
@@ -872,10 +1254,6 @@ function generateDeleteTwoChildrenScenario() {
   addStep(steps, tree, {
     detachedRootIds: [z.id],
     activeNodeIds: [y.id, zLeft.id],
-    nodeRoles: {
-      [y.id]: "successor",
-      [zLeft.id]: "moved-subtree"
-    },
     codeLine: 15,
     variables: { z: "10 ← вирізано", y: "12.Left = 5", parent: 20 },
     explanation: "Виконуємо y.SetLeft(z.Left): ліве піддерево z, вузол 5, переходить під successor y = 12. Це потрібно, бо всі значення лівого піддерева z менші за 12, і після цього y має обидва піддерева, потрібні для заміни z.",
@@ -885,9 +1263,6 @@ function generateDeleteTwoChildrenScenario() {
   addStep(steps, tree, {
     detachedRootIds: [z.id],
     activeNodeIds: [y.id],
-    nodeRoles: {
-      [y.id]: "successor"
-    },
     codeLine: 17,
     variables: { z: "10 ← більше не в дереві", y: "12 ← successor", parent: 20 },
     explanation: "Видалення завершено: z = 10 більше немає в основному дереві, а successor y = 12 стоїть на його місці. Це зберігає BST-правило, бо 5 лишився ліворуч від 12, 15 праворуч від 12, а 12 менший за 20.",
@@ -913,9 +1288,6 @@ function generateAvlScenario(caseName, sequence) {
     const inserted = insertPlain(tree, value);
     addStep(steps, tree, {
       activeNodeIds: [inserted.id],
-      nodeRoles: {
-        [inserted.id]: "inserted"
-      },
       codeLine: 2,
       variables: { node: value, parent: valueOf(inserted.parent), root: valueOf(tree.root), height: inserted.height, "balance factor": signed(inserted.balanceFactor) },
       explanation: `Вставляємо ${value} як у звичайне BST: порівняння веде новий вузол у правильне місце за правилом лівий < вузол < правий. Це потрібно, щоб перед балансуванням не порушити порядок пошуку; після цього вузол ${value} уже фізично підключений до дерева.`,
@@ -928,9 +1300,6 @@ function generateAvlScenario(caseName, sequence) {
       recomputeAll(tree);
       addStep(steps, tree, {
         activeNodeIds: [node.id],
-        nodeRoles: Math.abs(node.balanceFactor) <= 1
-          ? { [node.id]: "current" }
-          : { [node.id]: ["current", "imbalanced"] },
         codeLine: 3,
         variables: { node: node.value, parent: valueOf(node.parent), root: valueOf(tree.root), height: node.height, "balance factor": signed(node.balanceFactor) },
         explanation: `Піднімаємося до вузла ${node.value} і перераховуємо його height та balance factor за формулою height = max(left, right) + 1. Це потрібно, бо вставка нижче могла змінити висоту піддерева; після цього біля вузла ${node.value} показано актуальні h=${node.height} і bf=${signed(node.balanceFactor)}.`,
@@ -1018,15 +1387,11 @@ function generateAvlScenario(caseName, sequence) {
 
   addStep(steps, tree, {
     activeNodeIds: [tree.root.id],
-    nodeRoles: {
-      [tree.root.id]: "root"
-    },
     codeLine: 19,
     variables: { node: valueOf(tree.root), parent: null, root: valueOf(tree.root), height: tree.root.height, "balance factor": signed(tree.root.balanceFactor) },
     explanation: `AVL-вставка завершена для сценарію ${caseName}: після поворотів коренем став вузол ${tree.root.value}. Це потрібно, щоб висоти лівого і правого піддерев знову відрізнялися не більше ніж на 1; після цього всі labels h/bf біля вузлів відповідають збалансованому дереву.`,
     invariant: `AVL інваріант: balance factor вузла ${tree.root.value} = ${signed(tree.root.balanceFactor)} ✓`,
-    showAvlLabels: true,
-    finalStep: true
+    showAvlLabels: true
   });
 
   return steps;
@@ -1060,9 +1425,6 @@ function findUnbalancedRoot(tree) {
 function addAvlCaseStep(steps, tree, node, codeLine, caseName, explanation) {
   addStep(steps, tree, {
     activeNodeIds: [node.id],
-    nodeRoles: {
-      [node.id]: ["imbalanced", "rotation-pivot"]
-    },
     codeLine,
     variables: {
       node: node.value,
@@ -1100,14 +1462,6 @@ function leftRotateDetailed(tree, x, steps, options) {
 
   addStep(steps, tree, {
     activeNodeIds: y ? [x.id, y.id] : [x.id],
-    nodeRoles: y
-      ? {
-          [x.id]: "rotation-pivot",
-          [y.id]: "current"
-        }
-      : {
-          [x.id]: "rotation-pivot"
-        },
     codeLine: lines.save,
     variables: { x: x.value, y: valueOf(y), B: valueOf(b), root: valueOf(tree.root) },
     explanation: `${options.label}: зберігаємо y = x.Right, тобто вузол ${valueOf(y)} буде підніматися над x = ${x.value}. Це потрібно, бо лівий поворот завжди піднімає правого сина, і після цього кроку алгоритм має збережений вказівник y для безпечного перепідключення ребер.`,
@@ -1126,16 +1480,6 @@ function leftRotateDetailed(tree, x, steps, options) {
   addStep(steps, tree, {
     detachedRootIds: [y.id],
     activeNodeIds: b ? [x.id, y.id, b.id] : [x.id, y.id],
-    nodeRoles: b
-      ? {
-          [x.id]: "rotation-pivot",
-          [y.id]: "current",
-          [b.id]: "b-subtree"
-        }
-      : {
-          [x.id]: "rotation-pivot",
-          [y.id]: "current"
-        },
     codeLine: lines.moveB,
     variables: { x: x.value, y: y.value, B: valueOf(b), root: valueOf(tree.root) },
     explanation: `${options.label}: виконуємо x.SetRight(y.Left), тому піддерево B=${formatValue(valueOf(b))} переходить із y до правого посилання x. Це потрібно, бо B більше за x і менше за y, тож після цього кроку B уже стоїть у правильному BST-місці відносно x.`,
@@ -1147,10 +1491,6 @@ function leftRotateDetailed(tree, x, steps, options) {
   addStep(steps, tree, {
     detachedRootIds: [y.id],
     activeNodeIds: [x.id, y.id],
-    nodeRoles: {
-      [x.id]: "rotation-pivot",
-      [y.id]: "current"
-    },
     codeLine: lines.parent,
     variables: { x: x.value, y: `${y.value}, Parent=${formatValue(valueOf(y.parent))}`, B: valueOf(b), root: valueOf(tree.root) },
     explanation: `${options.label}: виконуємо y.Parent = x.Parent, тобто y отримує того самого батька, якого мав x. Це потрібно, щоб y міг зайняти місце x у батьківській ієрархії; після цього кроку вертикальний зв'язок y із майбутнім батьком підготовлений.`,
@@ -1163,10 +1503,6 @@ function leftRotateDetailed(tree, x, steps, options) {
   addStep(steps, tree, {
     detachedRootIds: [x.id],
     activeNodeIds: [x.id, y.id],
-    nodeRoles: {
-      [x.id]: "rotation-pivot",
-      [y.id]: "current"
-    },
     codeLine: lines.replace,
     variables: { x: x.value, y: `${y.value} ← займає місце x`, B: valueOf(b), root: valueOf(tree.root) },
     explanation: `${options.label}: виконуємо ReplaceParentChild(x, y), тому батько піддерева тепер посилається на y замість x. Це потрібно, щоб верхівка піддерева стала коректною після повороту; після цього кроку y уже стоїть над x у зовнішньому дереві.`,
@@ -1177,10 +1513,6 @@ function leftRotateDetailed(tree, x, steps, options) {
   setLeft(y, x);
   addStep(steps, tree, {
     activeNodeIds: [x.id, y.id],
-    nodeRoles: {
-      [x.id]: "rotation-pivot",
-      [y.id]: "current"
-    },
     codeLine: lines.finish,
     variables: { x: x.value, y: y.value, B: valueOf(b), root: valueOf(tree.root) },
     explanation: `${options.label}: виконуємо y.SetLeft(x), тому x стає лівим сином y. Це потрібно, бо x менший за y і має лишитися ліворуч; після цього лівий поворот завершено, а AVL-висоти та balance factor перераховані для нового стану.`,
@@ -1196,14 +1528,6 @@ function rightRotateDetailed(tree, y, steps, options) {
 
   addStep(steps, tree, {
     activeNodeIds: x ? [x.id, y.id] : [y.id],
-    nodeRoles: x
-      ? {
-          [x.id]: "current",
-          [y.id]: "rotation-pivot"
-        }
-      : {
-          [y.id]: "rotation-pivot"
-        },
     codeLine: lines.save,
     variables: { x: valueOf(x), y: y.value, B: valueOf(b), root: valueOf(tree.root) },
     explanation: `${options.label}: зберігаємо x = y.Left, тобто вузол ${valueOf(x)} буде підніматися над y = ${y.value}. Це потрібно, бо правий поворот завжди піднімає лівого сина, і після цього кроку алгоритм має збережений вказівник x для безпечного перепідключення ребер.`,
@@ -1222,16 +1546,6 @@ function rightRotateDetailed(tree, y, steps, options) {
   addStep(steps, tree, {
     detachedRootIds: [x.id],
     activeNodeIds: b ? [x.id, y.id, b.id] : [x.id, y.id],
-    nodeRoles: b
-      ? {
-          [x.id]: "current",
-          [y.id]: "rotation-pivot",
-          [b.id]: "b-subtree"
-        }
-      : {
-          [x.id]: "current",
-          [y.id]: "rotation-pivot"
-        },
     codeLine: lines.moveB,
     variables: { x: x.value, y: y.value, B: valueOf(b), root: valueOf(tree.root) },
     explanation: `${options.label}: виконуємо y.SetLeft(x.Right), тому піддерево B=${formatValue(valueOf(b))} переходить із x до лівого посилання y. Це потрібно, бо B більше за x і менше за y, тож після цього кроку B уже стоїть у правильному BST-місці відносно y.`,
@@ -1243,10 +1557,6 @@ function rightRotateDetailed(tree, y, steps, options) {
   addStep(steps, tree, {
     detachedRootIds: [x.id],
     activeNodeIds: [x.id, y.id],
-    nodeRoles: {
-      [x.id]: "current",
-      [y.id]: "rotation-pivot"
-    },
     codeLine: lines.parent,
     variables: { x: `${x.value}, Parent=${formatValue(valueOf(x.parent))}`, y: y.value, B: valueOf(b), root: valueOf(tree.root) },
     explanation: `${options.label}: виконуємо x.Parent = y.Parent, тобто x отримує того самого батька, якого мав y. Це потрібно, щоб x міг зайняти місце y у батьківській ієрархії; після цього кроку вертикальний зв'язок x із майбутнім батьком підготовлений.`,
@@ -1259,10 +1569,6 @@ function rightRotateDetailed(tree, y, steps, options) {
   addStep(steps, tree, {
     detachedRootIds: [y.id],
     activeNodeIds: [x.id, y.id],
-    nodeRoles: {
-      [x.id]: "current",
-      [y.id]: "rotation-pivot"
-    },
     codeLine: lines.replace,
     variables: { x: `${x.value} ← займає місце y`, y: y.value, B: valueOf(b), root: valueOf(tree.root) },
     explanation: `${options.label}: виконуємо ReplaceParentChild(y, x), тому батько піддерева тепер посилається на x замість y. Це потрібно, щоб верхівка піддерева стала коректною після повороту; після цього кроку x уже стоїть над y у зовнішньому дереві.`,
@@ -1273,10 +1579,6 @@ function rightRotateDetailed(tree, y, steps, options) {
   setRight(x, y);
   addStep(steps, tree, {
     activeNodeIds: [x.id, y.id],
-    nodeRoles: {
-      [x.id]: "current",
-      [y.id]: "rotation-pivot"
-    },
     codeLine: lines.finish,
     variables: { x: x.value, y: y.value, B: valueOf(b), root: valueOf(tree.root) },
     explanation: `${options.label}: виконуємо x.SetRight(y), тому y стає правим сином x. Це потрібно, бо y більший за x і має лишитися праворуч; після цього правий поворот завершено, а AVL-висоти та balance factor перераховані для нового стану.`,
@@ -1489,7 +1791,6 @@ function generateAvlCustom(values, insertValue) {
 
   addStep(steps, tree, {
     activeNodeIds: tree.root ? [tree.root.id] : [],
-    nodeRoles: tree.root ? { [tree.root.id]: "root" } : {},
     codeLine: 0,
     variables: { node: null, parent: null, root: valueOf(tree.root), height: valueOf(tree.root) ? tree.root.height : 0, "balance factor": valueOf(tree.root) ? signed(tree.root.balanceFactor) : 0 },
     explanation: `Побудовано власне AVL/BST-дерево з чисел ${values.join(", ")}. Тепер вставимо ${insertValue} і піднімемося назад до кореня, щоб перерахувати висоти та balance factor; після цього кроку початковий стан готовий.`,
@@ -1500,9 +1801,6 @@ function generateAvlCustom(values, insertValue) {
   const inserted = insertPlain(tree, insertValue);
   addStep(steps, tree, {
     activeNodeIds: [inserted.id],
-    nodeRoles: {
-      [inserted.id]: "inserted"
-    },
     codeLine: 2,
     variables: { node: insertValue, parent: valueOf(inserted.parent), root: valueOf(tree.root), height: inserted.height, "balance factor": signed(inserted.balanceFactor) },
     explanation: `Вставляємо ${insertValue} як у звичайне BST, тобто новий вузол підключається за правилом порівняння. Це потрібно, щоб спочатку зберегти порядок пошуку; після цього починається AVL-перерахунок вгору.`,
@@ -1514,9 +1812,6 @@ function generateAvlCustom(values, insertValue) {
     recomputeAll(tree);
     addStep(steps, tree, {
       activeNodeIds: [node.id],
-      nodeRoles: Math.abs(node.balanceFactor) <= 1
-        ? { [node.id]: "current" }
-        : { [node.id]: ["current", "imbalanced"] },
       codeLine: 3,
       variables: { node: node.value, parent: valueOf(node.parent), root: valueOf(tree.root), height: node.height, "balance factor": signed(node.balanceFactor) },
       explanation: `Перераховуємо вузол ${node.value}: висота й balance factor могли змінитися через вставку нижче. Це потрібно, бо AVL-рішення про поворот приймається саме за bf; після цього біля вузла видно h=${node.height}, bf=${signed(node.balanceFactor)}.`,
@@ -1530,15 +1825,11 @@ function generateAvlCustom(values, insertValue) {
   if (!unbalanced) {
     addStep(steps, tree, {
       activeNodeIds: [inserted.id],
-      nodeRoles: {
-        [inserted.id]: "inserted"
-      },
       codeLine: 19,
       variables: { node: insertValue, parent: valueOf(inserted.parent), root: valueOf(tree.root), height: tree.root.height, "balance factor": signed(tree.root.balanceFactor) },
       explanation: `Після вставки ${insertValue} жоден вузол не має bf поза межами [-1; +1]. Це означає, що поворот не потрібен; після цього AVL-вставка завершена.`,
       invariant: "AVL інваріант збережено для всіх вузлів ✓",
-      showAvlLabels: true,
-      finalStep: true
+      showAvlLabels: true
     });
     return steps;
   }
@@ -1561,30 +1852,15 @@ function generateAvlCustom(values, insertValue) {
 
   addStep(steps, tree, {
     activeNodeIds: tree.root ? [tree.root.id] : [],
-    nodeRoles: tree.root ? { [tree.root.id]: "root" } : {},
     codeLine: 19,
     variables: { node: insertValue, parent: null, root: valueOf(tree.root), height: tree.root ? tree.root.height : 0, "balance factor": tree.root ? signed(tree.root.balanceFactor) : 0 },
     explanation: `Власна AVL-вставка завершена: після потрібних поворотів коренем є ${valueOf(tree.root)}. Це відновлює AVL-інваріант, і після цього всі вузли мають balance factor у дозволених межах.`,
     invariant: "AVL інваріант відновлено ✓",
-    showAvlLabels: true,
-    finalStep: true
+    showAvlLabels: true
   });
 
   return steps;
 }
-
-const SCENARIO_BUILDERS = {
-  "bst-search": () => generateSearchScenario([20, 10, 30, 5, 15], 15),
-  "delete-leaf": () => generateDeleteLeafScenario(),
-  "delete-one-child": () => generateDeleteOneChildScenario(),
-  "delete-two-children": () => generateDeleteTwoChildrenScenario(),
-  "left-rotate": () => generateLeftRotateScenario(),
-  "right-rotate": () => generateRightRotateScenario(),
-  "avl-ll": () => generateAvlScenario("LL", [30, 20, 10]),
-  "avl-rr": () => generateAvlScenario("RR", [10, 20, 30]),
-  "avl-lr": () => generateAvlScenario("LR", [30, 10, 20]),
-  "avl-rl": () => generateAvlScenario("RL", [10, 30, 20])
-};
 
 function signed(number) {
   if (number > 0) {
@@ -1599,11 +1875,7 @@ function findTopic(key) {
 }
 
 function findScenario(id) {
-  const definition = scenarioDefinitions.find((item) => item.id === id) ?? scenarioDefinitions[0];
-  return {
-    ...definition,
-    build: SCENARIO_BUILDERS[definition.id] ?? (() => generateSearchScenario([20, 10, 30, 5, 15], 15))
-  };
+  return scenarioDefinitions.find((definition) => definition.id === id) ?? scenarioDefinitions[0];
 }
 
 function populateScenarioSelect(topic) {
@@ -1648,7 +1920,7 @@ function render() {
   }
 
   renderTree(step);
-  renderCode(codes[currentScenario.codeKey], step.highlightedCodeLine ?? step.codeLine);
+  renderCode(codes[currentScenario.codeKey], step.codeLine);
   renderExplanation(step);
   updateControls();
 }
@@ -1749,10 +2021,9 @@ function drawNodes(snapshot, nodeIdValue, positions, step, isDetached, visited =
   const position = positions.get(nodeIdValue);
   const isRoot = nodeIdValue === snapshot.rootId;
   const isActive = step.activeNodeIds.includes(nodeIdValue);
-  const roleClasses = Array.isArray(step.nodeRoles?.[nodeIdValue]) ? step.nodeRoles[nodeIdValue] : [];
 
   const group = createSvgElement("g");
-  group.setAttribute("class", `tree-node ${roleClasses.join(" ")}${isActive ? " active" : ""}${isRoot ? " is-root" : ""}`.trim());
+  group.setAttribute("class", `tree-node${isActive ? " active" : ""}${isRoot ? " root" : ""}`);
   group.setAttribute("transform", `translate(${position.x}, ${position.y})`);
 
   const circle = createSvgElement("circle");
@@ -1834,50 +2105,42 @@ function renderCode(lines, activeLine) {
 function renderExplanation(step) {
   const explanationByLevel = {
     short: step.explanationShort,
-    medium: step.explanationMedium ?? step.explanationNormal,
+    normal: step.explanationNormal,
     deep: step.explanationDeep
   };
 
-  const fallback = step.explanationMedium ?? step.explanationNormal ?? step.explanation ?? "";
-  explanationText.textContent = explanationByLevel[explanationLevel] ?? fallback;
-  invariantBox.textContent = step.invariant ?? "";
+  explanationText.textContent = explanationByLevel[explanationLevel] ?? step.explanationNormal ?? step.explanation;
+  invariantBox.textContent = step.invariant;
   invariantBox.classList.toggle("warning", step.invariantStatus === "warning");
   invariantBox.classList.toggle("danger", step.invariantStatus === "danger");
 
   if (defenseModeEnabled) {
     defenseHintCard.classList.remove("hidden");
     let hintKey = "default";
-
     if (currentScenario) {
-      const id = String(currentScenario.id || currentTopic?.key || "");
-      const hintMap = {
-        "bst-search": "bstSearch",
-        "delete-leaf": "bstDelete",
-        "delete-one-child": "bstDelete",
-        "delete-two-children": "bstDelete",
-        "left-rotate": "leftRotate",
-        "right-rotate": "rightRotate",
-        "avl-ll": "avlLL",
-        "avl-rr": "avlRR",
-        "avl-lr": "avlLR",
-        "avl-rl": "avlRL"
-      };
-
-      hintKey = hintMap[id] ?? (id.includes("avl") ? "avlInsert" : "default");
+      const id = currentScenario.id || currentTopic?.key;
+      if (id === "bst-search" || id === "bstSearch") hintKey = "bstSearch";
+      else if (id && id.includes("delete")) hintKey = "bstDelete";
+      else if (id === "left-rotate" || id === "leftRotate") hintKey = "leftRotate";
+      else if (id === "right-rotate" || id === "rightRotate") hintKey = "rightRotate";
+      else if (id === "avl-ll") hintKey = "avlLL";
+      else if (id === "avl-rr") hintKey = "avlRR";
+      else if (id === "avl-lr") hintKey = "avlLR";
+      else if (id === "avl-rl") hintKey = "avlRL";
+      else if (id && id.includes("avl")) hintKey = "avlInsert";
     }
-
-    defenseHintText.innerHTML = defenseHints[hintKey] || defenseHints.default || "";
+    defenseHintText.innerHTML = defenseHints[hintKey] || defenseHints["default"];
   } else {
     defenseHintCard.classList.add("hidden");
   }
 
   variablesTable.innerHTML = "";
-  const entries = Object.entries(step.variables ?? {});
+  const entries = Object.entries(step.variables);
 
   if (entries.length === 0) {
     const empty = document.createElement("div");
     empty.className = "variable-value";
-    empty.textContent = "?? ????? ????? ????? ???????? ???????.";
+    empty.textContent = "На цьому кроці немає активних змінних.";
     variablesTable.appendChild(empty);
     return;
   }

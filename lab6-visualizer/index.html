@@ -10,6 +10,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Лабораторна 6 — Візуалізатор бінарних дерев</title>
+  <meta name="description" content="Інтерактивний візуалізатор BST, поворотів і AVL-дерев для підготовки до лабораторної 6 з АСД">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,9 +19,7 @@
       <p class="eyebrow">Лабораторна 6</p>
       <h1 class="home-title">Дерева</h1>
       <p class="home-subtitle">Обери тему — і побачиш як воно працює зсередини</p>
-
       <div id="topicGrid" class="topic-grid" aria-label="Теми"></div>
-
       <button id="resetProgressLink" class="reset-progress" type="button">Скинути прогрес</button>
     </div>
   </section>
@@ -34,7 +33,7 @@
 
     <div class="app-shell">
       <header class="top-bar">
-        <div>
+        <div class="top-bar-left">
           <p class="eyebrow">Поточна тема</p>
           <h1 id="activeTopicTitle">Інтерактивний візуалізатор</h1>
         </div>
@@ -51,24 +50,47 @@
             <p id="customError" class="custom-error" aria-live="polite"></p>
           </section>
         </div>
+
+        <div class="mode-switch" role="group" aria-label="Режим навчання">
+          <button type="button" class="mode-btn" data-mode="learn" title="Простий режим для першого знайомства">📖 Learn</button>
+          <button type="button" class="mode-btn active" data-mode="trace" title="Покроковий trace з кодом і змінними">🔍 Trace</button>
+          <button type="button" class="mode-btn" data-mode="defense" title="Підготовка до захисту">🎓 Defense</button>
+          <button type="button" class="mode-btn" data-mode="debug" title="Debug: validation і технічні деталі">🛠 Debug</button>
+        </div>
       </header>
 
-      <main class="workspace">
+      <nav class="controls-bar">
+        <button id="prevBtn" type="button">Назад</button>
+        <button id="playBtn" type="button" class="primary">Пуск</button>
+        <button id="nextBtn" type="button">Далі</button>
+        <button id="resetBtn" type="button">Скинути</button>
+        <button id="quizBtn" type="button" class="quiz-button hidden">Перевір себе</button>
+        <span id="stepCounter" class="step-counter">Крок 1 / 1</span>
+      </nav>
+      
+      <main class="workspace" id="workspace">
         <section class="panel tree-panel" aria-label="Візуалізація дерева">
           <div class="panel-header">
             <div>
               <p class="panel-kicker">Дерево</p>
               <h2 id="treeTitle">SVG-візуалізація</h2>
             </div>
-            <div class="legend">
-              <span><i class="legend-dot active"></i>активний вузол</span>
-              <span><i class="legend-dot root"></i>root</span>
+            <div class="legend" id="treeLegend">
+              <span><i class="legend-dot ld-current"></i>Поточний вузол</span>
+              <span><i class="legend-dot ld-parent"></i>Батьківський вузол</span>
+              <span><i class="legend-dot ld-successor"></i>Successor</span>
+              <span><i class="legend-dot ld-b-subtree"></i>B-піддерево</span>
+              <span><i class="legend-dot ld-rotation-pivot"></i>Pivot повороту</span>
+              <span><i class="legend-dot ld-imbalanced"></i>Незбалансований вузол</span>
+              <span><i class="legend-dot ld-inserted"></i>Новий вставлений вузол</span>
+              <span><i class="legend-dot ld-root"></i>Root</span>
+              <span><i class="legend-dot ld-moved-subtree"></i>Переміщене піддерево</span>
             </div>
           </div>
           <svg id="treeSvg" role="img" aria-label="Поточний стан дерева"></svg>
         </section>
 
-        <section class="panel code-panel" aria-label="C# код алгоритму">
+        <section class="panel code-panel" id="codePanel" aria-label="C# код алгоритму">
           <div class="panel-header">
             <div>
               <p class="panel-kicker">Алгоритм</p>
@@ -86,9 +108,10 @@
             </div>
             <div id="explanationLevelToggle" class="level-toggle" aria-label="Рівень пояснення">
               <button type="button" data-level="short">Коротко</button>
-              <button type="button" data-level="normal" class="active">Нормально</button>
+              <button type="button" data-level="medium" class="active">Детально</button>
               <button type="button" data-level="deep">Глибоко</button>
             </div>
+            <button type="button" id="defenseModeToggle" class="defense-toggle" aria-pressed="false" style="margin-left: 8px;">🛡 Захист</button>
           </div>
 
           <article class="explanation-card">
@@ -96,21 +119,22 @@
             <div id="invariantBox" class="invariant-box"></div>
           </article>
 
-          <article class="variables-card">
+          <article id="defenseHintCard" class="defense-hint-card hidden">
+            <p class="defense-hint-label">🎓 Що сказати на захисті:</p>
+            <p id="defenseHintText" class="defense-hint-text"></p>
+          </article>
+
+          <article class="variables-card" id="variablesCard">
             <h3>Змінні</h3>
             <div id="variablesTable" class="variables-table"></div>
           </article>
+
+          <article id="debugPanel" class="debug-panel hidden">
+            <h3>🛠 Debug: Validation</h3>
+            <div id="debugContent" class="debug-content"></div>
+          </article>
         </section>
       </main>
-
-      <footer class="bottom-bar">
-        <button id="prevBtn" type="button">Назад</button>
-        <button id="playBtn" type="button" class="primary">Пуск</button>
-        <button id="nextBtn" type="button">Далі</button>
-        <button id="resetBtn" type="button">Скинути</button>
-        <button id="quizBtn" type="button" class="quiz-button hidden">Перевір себе</button>
-        <span id="stepCounter" class="step-counter">Крок 1 / 1</span>
-      </footer>
     </div>
   </section>
 
@@ -130,6 +154,16 @@
     </div>
   </div>
 
-  <script src="main.js"></script>
+  <div id="checkpointOverlay" class="checkpoint-overlay hidden" role="dialog" aria-modal="true" aria-label="Checkpoint">
+    <div class="checkpoint-card">
+      <p class="checkpoint-label">💡 Checkpoint — перевір своє розуміння</p>
+      <p id="checkpointQuestion" class="checkpoint-question"></p>
+      <div id="checkpointOptions" class="checkpoint-options"></div>
+      <p id="checkpointFeedback" class="checkpoint-feedback"></p>
+      <button id="checkpointContinueBtn" class="primary checkpoint-continue hidden" type="button">Продовжити →</button>
+    </div>
+  </div>
+
+  <script type="module" src="./main.js"></script>
 </body>
 </html>

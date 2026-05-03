@@ -3,6 +3,7 @@ import { scenarioDefinitions } from "./data/scenarios.js";
 import { topicDefinitions } from "./data/topics.js";
 import { quizDefinitions } from "./data/quizzes.js";
 import { defenseHints } from "./data/defenseHints.js";
+import { advancedLessons } from "./data/advancedLessons.js";
 
 import {
   TreeNode,
@@ -61,6 +62,17 @@ const quizOptions = document.getElementById("quizOptions");
 const quizFeedback = document.getElementById("quizFeedback");
 const quizNextBtn = document.getElementById("quizNextBtn");
 const quizCloseBtn = document.getElementById("quizCloseBtn");
+
+// Advanced Study UI
+const advancedStudyScreen = document.getElementById("advancedStudyScreen");
+const advancedStudyBtn = document.getElementById("advancedStudyBtn");
+const backFromAdvancedBtn = document.getElementById("backFromAdvancedBtn");
+const advancedSidebarNav = document.getElementById("advancedSidebarNav");
+const advancedLessonTitle = document.getElementById("advancedLessonTitle");
+const advancedLessonContent = document.getElementById("advancedLessonContent");
+const advPrevBtn = document.getElementById("advPrevBtn");
+const advNextBtn = document.getElementById("advNextBtn");
+const advProgress = document.getElementById("advProgress");
 
 const progressStorageKey = "lab6viz_progress";
 
@@ -188,13 +200,117 @@ function showHome() {
   stopPlay();
   quizOverlay.classList.add("hidden");
   visualizerScreen.classList.add("hidden");
+  if (advancedStudyScreen) advancedStudyScreen.classList.add("hidden");
   homeScreen.classList.remove("hidden");
   renderProgressUi();
 }
 
 function showVisualizer() {
   homeScreen.classList.add("hidden");
+  if (advancedStudyScreen) advancedStudyScreen.classList.add("hidden");
   visualizerScreen.classList.remove("hidden");
+}
+
+function showAdvancedStudy() {
+  stopPlay();
+  homeScreen.classList.add("hidden");
+  visualizerScreen.classList.add("hidden");
+  if (advancedStudyScreen) advancedStudyScreen.classList.remove("hidden");
+  renderAdvancedSidebar();
+}
+
+let currentAdvLesson = null;
+let currentAdvSectionIndex = 0;
+
+function renderAdvancedSidebar() {
+  if (!advancedSidebarNav) return;
+  advancedSidebarNav.innerHTML = "";
+  advancedLessons.forEach((lesson) => {
+    const btn = document.createElement("button");
+    btn.className = `sidebar-topic${currentAdvLesson && currentAdvLesson.id === lesson.id ? " active" : ""}`;
+    btn.dataset.lessonId = lesson.id;
+    btn.innerHTML = `<span class="progress-dot ${progressState['adv_' + lesson.id] || "todo"}"></span><span>${lesson.title}</span>`;
+    btn.addEventListener("click", () => openAdvancedLesson(lesson));
+    advancedSidebarNav.appendChild(btn);
+  });
+}
+
+function openAdvancedLesson(lesson) {
+  currentAdvLesson = lesson;
+  currentAdvSectionIndex = 0;
+  markProgress('adv_' + lesson.id, "in-progress");
+  renderAdvancedSidebar();
+  renderAdvancedContent();
+}
+
+function renderAdvancedContent() {
+  if (!currentAdvLesson || !advancedLessonContent) return;
+  
+  advancedLessonTitle.textContent = currentAdvLesson.title;
+  const section = currentAdvLesson.sections[currentAdvSectionIndex];
+  
+  advProgress.textContent = `Частина ${currentAdvSectionIndex + 1} / ${currentAdvLesson.sections.length}`;
+  
+  advPrevBtn.disabled = currentAdvSectionIndex === 0;
+  advNextBtn.disabled = currentAdvSectionIndex === currentAdvLesson.sections.length - 1;
+  
+  if (currentAdvSectionIndex === currentAdvLesson.sections.length - 1) {
+    markProgress('adv_' + currentAdvLesson.id, "done");
+    renderAdvancedSidebar();
+  }
+
+  let html = `<h2 style="color: var(--orange-soft); margin-bottom: 16px;">${section.title}</h2>`;
+  html += `<p style="font-size: 16px; line-height: 1.6;">${section.text}</p>`;
+  
+  if (section.type === "checkpoint") {
+    html += `
+      <div style="margin-top: 24px; padding: 16px; background: rgba(167, 139, 250, 0.1); border: 1px solid rgba(167, 139, 250, 0.4); border-radius: 8px;">
+        <h3 style="color: var(--purple); margin-bottom: 12px;">Питання:</h3>
+        <p style="font-size: 16px; margin-bottom: 16px;">${section.question}</p>
+        <button id="showAnswerBtn" class="primary" style="padding: 8px 16px; border-radius: 6px; background: #17243a; color: #fff; border: 1px solid var(--purple); cursor: pointer;">Показати відповідь</button>
+        <div id="answerBox" class="hidden" style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed rgba(167, 139, 250, 0.3);">
+          <p style="font-size: 16px; color: #e0f2fe;">${section.answer}</p>
+        </div>
+      </div>
+    `;
+  } else if (section.type === "visualizer") {
+    html += `
+      <div style="margin-top: 24px;">
+        <button id="openScenarioBtn" class="primary" style="padding: 10px 20px; border-radius: 8px; border: 1px solid #d97706; background: linear-gradient(180deg, #f59e0b, #d97706); color: #111827; font-weight: 800; cursor: pointer;">Відкрити у візуалізаторі</button>
+      </div>
+    `;
+  }
+  
+  advancedLessonContent.innerHTML = html;
+  
+  if (section.type === "checkpoint") {
+    document.getElementById("showAnswerBtn").addEventListener("click", (e) => {
+      document.getElementById("answerBox").classList.remove("hidden");
+      e.target.classList.add("hidden");
+    });
+  } else if (section.type === "visualizer") {
+    document.getElementById("openScenarioBtn").addEventListener("click", () => {
+      openVisualizerScenario(section.scenarioId);
+    });
+  }
+}
+
+function openVisualizerScenario(scenarioId) {
+  let targetTopic = null;
+  for (const topic of topicDefinitions) {
+    if (topic.scenarioIds && topic.scenarioIds.includes(scenarioId)) {
+      targetTopic = topic;
+      break;
+    }
+  }
+  
+  if (targetTopic) {
+    openTopic(targetTopic.key);
+    scenarioSelect.value = scenarioId;
+    scenarioSelect.dispatchEvent(new Event("change"));
+  } else {
+    console.warn("Scenario not found in topics:", scenarioId);
+  }
 }
 
 function firstSentence(text) {
@@ -2233,6 +2349,32 @@ defenseModeToggle.addEventListener("click", () => {
 });
 
 window.addEventListener("resize", () => render());
+
+if (advPrevBtn) {
+  advPrevBtn.addEventListener("click", () => {
+    if (currentAdvSectionIndex > 0) {
+      currentAdvSectionIndex--;
+      renderAdvancedContent();
+    }
+  });
+}
+
+if (advNextBtn) {
+  advNextBtn.addEventListener("click", () => {
+    if (currentAdvLesson && currentAdvSectionIndex < currentAdvLesson.sections.length - 1) {
+      currentAdvSectionIndex++;
+      renderAdvancedContent();
+    }
+  });
+}
+
+if (advancedStudyBtn) {
+  advancedStudyBtn.addEventListener("click", showAdvancedStudy);
+}
+
+if (backFromAdvancedBtn) {
+  backFromAdvancedBtn.addEventListener("click", showHome);
+}
 
 renderProgressUi();
 showHome();

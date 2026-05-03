@@ -20,7 +20,36 @@
       <h1 class="home-title">Дерева</h1>
       <p class="home-subtitle">Обери тему — і побачиш як воно працює зсередини</p>
       <div id="topicGrid" class="topic-grid" aria-label="Теми"></div>
-      <button id="resetProgressLink" class="reset-progress" type="button">Скинути прогрес</button>
+      <div class="home-actions" style="display: flex; gap: 16px; margin-top: 22px;">
+        <button id="advancedStudyBtn" class="primary" type="button" style="padding: 10px 16px; border-radius: 8px; border: 1px solid #d97706; background: linear-gradient(180deg, #f59e0b, #d97706); color: #111827; font-weight: 800; cursor: pointer;">🎓 Advanced Study Mode</button>
+        <button id="resetProgressLink" class="reset-progress" type="button" style="margin-top: 0; align-self: center;">Скинути прогрес</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="advancedStudyScreen" class="visualizer-screen hidden">
+    <aside class="sidebar" aria-label="Advanced Lessons">
+      <div class="sidebar-title">🎓 Advanced</div>
+      <button id="backFromAdvancedBtn" class="back-link" type="button">← На головну</button>
+      <nav id="advancedSidebarNav" class="sidebar-nav"></nav>
+    </aside>
+    <div class="app-shell" style="display: flex; flex-direction: column;">
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <p class="eyebrow">Advanced Study</p>
+          <h1 id="advancedLessonTitle">Оберіть тему</h1>
+        </div>
+      </header>
+      <main class="workspace" style="display: block; flex: 1; background: var(--panel-2); border-radius: var(--radius); padding: 24px; overflow-y: auto; border: 1px solid var(--line);">
+        <div id="advancedLessonContent" style="max-width: 800px; margin: 0 auto;">
+          <p style="color: var(--muted); font-size: 18px;">Виберіть тему зліва для початку навчання.</p>
+        </div>
+      </main>
+      <nav class="controls-bar" style="justify-content: space-between;">
+        <button id="advPrevBtn" type="button" disabled>Попередня частина</button>
+        <span id="advProgress" class="step-counter" style="margin: 0;">0 / 0</span>
+        <button id="advNextBtn" type="button" class="primary" disabled>Наступна частина</button>
+      </nav>
     </div>
   </section>
 

@@ -83,6 +83,7 @@ let currentIndex = 0;
 let playTimer = null;
 let explanationLevel = "medium";
 let defenseModeEnabled = false;
+let appMode = "trace"; // learn | trace | defense | debug
 let progressState = readProgress();
 let quizState = null;
 
@@ -1948,6 +1949,14 @@ function renderCode(lines, activeLine) {
 }
 
 function renderExplanation(step) {
+  // Determine effective explanation level based on appMode
+  let effectiveLevel = explanationLevel;
+  if (appMode === "learn") {
+    effectiveLevel = "short";
+  } else if (appMode === "debug") {
+    effectiveLevel = "deep";
+  }
+
   const explanationByLevel = {
     short: step.explanationShort,
     medium: step.explanationMedium ?? step.explanationNormal,
@@ -1955,11 +1964,12 @@ function renderExplanation(step) {
   };
 
   const fallback = step.explanationMedium ?? step.explanationNormal ?? step.explanation ?? "";
-  explanationText.textContent = explanationByLevel[explanationLevel] ?? fallback;
+  explanationText.textContent = explanationByLevel[effectiveLevel] ?? fallback;
   invariantBox.textContent = step.invariant ?? "";
   invariantBox.classList.toggle("warning", step.invariantStatus === "warning");
   invariantBox.classList.toggle("danger", step.invariantStatus === "danger");
 
+  // Defense hint: show when defenseModeEnabled (set by 🛡 button OR Defense mode button)
   if (defenseModeEnabled) {
     defenseHintCard.classList.remove("hidden");
     let hintKey = "default";
@@ -1987,13 +1997,37 @@ function renderExplanation(step) {
     defenseHintCard.classList.add("hidden");
   }
 
+  // Debug panel: show validation details only in debug mode
+  const debugPanel = document.getElementById("debugPanel");
+  if (debugPanel) {
+    if (appMode === "debug" && step.validationContext) {
+      debugPanel.classList.remove("hidden");
+      const debugContent = document.getElementById("debugContent");
+      if (debugContent) {
+        const vc = step.validationContext;
+        const checks = [];
+        if (vc.bst) checks.push({ label: "BST invariant", ok: vc.bst.ok, err: vc.bst.error });
+        if (vc.parentLinks) checks.push({ label: "Parent links", ok: vc.parentLinks.ok, err: vc.parentLinks.error });
+        if (vc.avl) checks.push({ label: "AVL balance", ok: vc.avl.ok, err: vc.avl.error });
+        debugContent.innerHTML = checks.map(c => `
+          <div class="debug-check ${c.ok ? 'ok' : 'fail'}">
+            <div class="debug-check-title">${c.ok ? '✓' : '✗'} ${c.label}</div>
+            ${c.err ? `<div class="debug-check-error">${c.err}</div>` : ''}
+          </div>
+        `).join("") || "<div class=\"debug-check ok\"><div class=\"debug-check-title\">No validation data</div></div>";
+      }
+    } else {
+      debugPanel.classList.add("hidden");
+    }
+  }
+
   variablesTable.innerHTML = "";
   const entries = Object.entries(step.variables ?? {});
 
   if (entries.length === 0) {
     const empty = document.createElement("div");
     empty.className = "variable-value";
-    empty.textContent = "?? ????? ????? ????? ???????? ???????.";
+    empty.textContent = "На цьому кроці немає відстежуваних змінних.";
     variablesTable.appendChild(empty);
     return;
   }
@@ -2336,16 +2370,56 @@ defenseModeToggle.addEventListener("click", () => {
   defenseModeEnabled = !defenseModeEnabled;
   defenseModeToggle.classList.toggle("active", defenseModeEnabled);
   defenseModeToggle.setAttribute("aria-pressed", defenseModeEnabled);
-  
-  if (defenseModeEnabled) {
-    document.body.classList.add("mode-defense");
-  } else {
-    document.body.classList.remove("mode-defense");
+
+  // Keep shield toggle and app mode synchronized without conflicting body mode classes.
+  // If shield is turned off while Defense mode is active, return to Trace.
+  if (!defenseModeEnabled && appMode === "defense") {
+    applyAppMode("trace");
+    return;
   }
-  
+
   if (steps[currentIndex]) {
     renderExplanation(steps[currentIndex]);
   }
+});
+
+// ── Mode button listeners ──
+function applyAppMode(mode) {
+  appMode = mode;
+
+  // Update active class on mode buttons
+  document.querySelectorAll(".mode-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.mode === mode);
+  });
+
+  // Sync defenseModeEnabled with Defense mode
+  if (mode === "defense") {
+    defenseModeEnabled = true;
+    defenseModeToggle.classList.add("active");
+    defenseModeToggle.setAttribute("aria-pressed", "true");
+  } else {
+    defenseModeEnabled = false;
+    defenseModeToggle.classList.remove("active");
+    defenseModeToggle.setAttribute("aria-pressed", "false");
+  }
+
+  // Apply body class for CSS-driven layout changes
+  document.body.classList.remove("mode-learn", "mode-trace", "mode-defense", "mode-debug");
+  document.body.classList.add(`mode-${mode}`);
+
+  // Re-render explanation with new mode
+  if (steps[currentIndex]) {
+    renderExplanation(steps[currentIndex]);
+  }
+}
+
+document.querySelectorAll(".mode-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const mode = btn.dataset.mode;
+    if (mode) {
+      applyAppMode(mode);
+    }
+  });
 });
 
 window.addEventListener("resize", () => render());

@@ -117,6 +117,35 @@ namespace agapovlab6
             PrintTree(node.Right, childIndent, true);
             PrintTree(node.Left, childIndent, false);
         }
+
+        /// <summary>
+        /// Метод для побудови AVL-дерева на основі введених користувачем даних.
+        /// Кожне введене значення вставляється через AvlTree.Insert,
+        /// тому дерево автоматично зберігає BST-властивість і баланс AVL.
+        /// </summary>
+        /// <param name="n">Кількість вузлів, які потрібно вставити</param>
+        /// <returns>Побудоване AVL-дерево</returns>
+        public static AvlTree BuildAVL(int n)
+        {
+            AvlTree tree = new AvlTree();
+
+            for (int i = 0; i < n; i++)
+            {
+                Console.Write($"Введіть значення AVL-вузла [{i}]: ");
+
+                if (int.TryParse(Console.ReadLine(), out int value))
+                {
+                    tree.Insert(value);
+                }
+                else
+                {
+                    Console.WriteLine("Введіть число.");
+                    i--;
+                }
+            }
+
+            return tree;
+        }
     }
 
 }

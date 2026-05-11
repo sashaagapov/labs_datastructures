@@ -4,6 +4,9 @@ obj/
 .vs/
 .vscode/
 .DS_Store
+node_modules/
+lab6-visualizer/node_modules/
+.env
 
 # Other IDE files
 *.sln

@@ -18,6 +18,15 @@ export const defenseHints = {
       <li>Функція Transplant потрібна, щоб надійно оновити зв'язки parent та root.</li>
     </ul>
   `,
+  "bstTransplant": `
+    <ul>
+      <li><strong>Transplant(u, v)</strong> замінює місце вузла <em>u</em> у дереві на вузол <em>v</em>.</li>
+      <li>Якщо <em>u</em> — корінь, тоді <em>root = v</em>.</li>
+      <li>Інакше батько <em>u</em> починає посилатися на <em>v</em> (ліворуч або праворуч).</li>
+      <li>Якщо <em>v != null</em>, то <em>v.Parent = u.Parent</em>.</li>
+      <li><strong>Важливо:</strong> Transplant не переносить автоматично дітей <em>u</em> — це робиться окремими кроками в delete.</li>
+    </ul>
+  `,
   "leftRotate": `
     <ul>
       <li>$y = x.Right$ (правий син $x$).</li>
@@ -77,6 +86,22 @@ export const defenseHints = {
       <li>Це "зигзагоподібний" дисбаланс.</li>
       <li>Крок 1: <strong>RightRotate</strong> навколо правого сина (перетворює форму на RR).</li>
       <li>Крок 2: <strong>LeftRotate</strong> навколо незбалансованого батька.</li>
+    </ul>
+  `,
+  "avlDelete": `
+    <ul>
+      <li><strong>AVL delete</strong> складається з двох фаз: BST-видалення + підйом назад із перевіркою bf.</li>
+      <li>Case після delete визначаємо за <em>bf вузла</em> і <em>bf його дитини</em>, а не за вставленим ключем.</li>
+      <li>Якщо вузол right-heavy і bf правої дитини ≤ 0 — це RR і робимо LeftRotate.</li>
+      <li>Після повороту обов’язково оновлюємо height спочатку в нижньому вузлі, потім у новому корені піддерева.</li>
+    </ul>
+  `,
+  "rbInsert": `
+    <ul>
+      <li>Red-Black insert спочатку вставляє вузол як у BST, фарбує його в red, а потім через recoloring і rotations відновлює властивості дерева.</li>
+      <li>Ключова перевірка fixup: parent, grandparent і uncle.</li>
+      <li>Якщо uncle red — робимо recoloring; якщо uncle black/null — робимо rotations + перефарбування.</li>
+      <li>Після кожної вставки корінь обов’язково має бути black.</li>
     </ul>
   `,
   "default": `

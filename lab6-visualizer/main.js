@@ -442,6 +442,21 @@ function resolveNodeRoles(options, activeNodeIds, rootId) {
   return roles;
 }
 
+function extractNodeColors(tree) {
+  const nodeColors = {};
+  if (!tree?.nodes) {
+    return nodeColors;
+  }
+
+  tree.nodes.forEach((node) => {
+    if (node?.color === "red" || node?.color === "black") {
+      nodeColors[node.id] = node.color;
+    }
+  });
+
+  return nodeColors;
+}
+
 function inferScenarioType(options) {
   if (options.validationContext?.scenarioType) {
     return options.validationContext.scenarioType;
@@ -514,6 +529,7 @@ function addStep(targetSteps, tree, options = {}) {
 
   const step = {
     treeSnapshot: serializeTree(tree, options.detachedRootIds ?? []),
+    nodeColors: options.nodeColors ?? extractNodeColors(tree),
     activeNodeIds,
     activeNodes: options.activeNodes ?? activeNodeIds,
     nodeRoles,
@@ -1014,6 +1030,65 @@ function generateDeleteTwoChildrenScenario() {
   return steps;
 }
 
+function generateTransplantScenario() {
+  const tree = buildBst([20, 10, 30, 5]);
+  const steps = [];
+  const u = find(tree, 10);
+  const v = find(tree, 5);
+  const oldParent = u.parent;
+
+  addStep(steps, tree, {
+    activeNodeIds: [u.id, v.id, oldParent.id],
+    nodeRoles: {
+      [u.id]: "current",
+      [v.id]: "successor",
+      [oldParent.id]: "parent"
+    },
+    codeLine: 0,
+    variables: { u: 10, v: 5, "u.parent": valueOf(oldParent), root: valueOf(tree.root) },
+    explanation: "Початковий стан для Transplant: u = 10, v = 5, а батько u — вузол 20. Це потрібно, щоб чітко визначити, яке саме посилання буде переприв'язане; після цього кроку алгоритм переходить до перевірки, де знаходиться u відносно свого батька.",
+    invariant: "BST інваріант: v(5) < u(10) < parent(20) < 30 ✓"
+  });
+
+  addStep(steps, tree, {
+    activeNodeIds: [u.id, oldParent.id],
+    nodeRoles: {
+      [u.id]: "current",
+      [oldParent.id]: "parent"
+    },
+    codeLine: 4,
+    variables: { u: 10, v: 5, branch: "u == u.Parent.Left", root: valueOf(tree.root) },
+    explanation: "Перевірка гілки показує, що u є лівим сином свого батька, тому треба виконати саме u.Parent.SetLeft(v). Це важливо, бо Transplant змінює лише локальне батьківське посилання; після цього кроку визначено правильну гілку алгоритму.",
+    invariant: "BST інваріант до переприв'язки збережено ✓"
+  });
+
+  transplant(tree, u, v);
+  addStep(steps, tree, {
+    activeNodeIds: [oldParent.id, v.id],
+    nodeRoles: {
+      [v.id]: "current",
+      [oldParent.id]: "parent"
+    },
+    codeLine: 5,
+    variables: { "20.Left": valueOf(oldParent.left), "v.parent": valueOf(v.parent), root: valueOf(tree.root) },
+    explanation: "Виконуємо Transplant(u, v): посилання 20.Left змінюється з 10 на 5, тобто v займає місце u в основному дереві. Це і є головна ідея операції Transplant; після цього кроку вузол 5 стоїть у позиції, де раніше був 10.",
+    invariant: "BST інваріант після локальної заміни місця збережено ✓"
+  });
+
+  addStep(steps, tree, {
+    activeNodeIds: [v.id],
+    nodeRoles: {
+      [v.id]: "current"
+    },
+    codeLine: 9,
+    variables: { "v.parent": valueOf(v.parent), root: valueOf(tree.root), note: "children of u not moved automatically" },
+    explanation: "Окремо фіксуємо ключовий результат: v.Parent оновлено на колишнього батька вузла u. Водночас Transplant не переносить автоматично дітей u під v, тому в повному TreeDelete додатково виконують SetLeft/SetRight; після цього кроку базова операція завершена.",
+    invariant: "BST інваріант збережено; Transplant виконано коректно ✓"
+  });
+
+  return steps;
+}
+
 function generateAvlScenario(caseName, sequence) {
   const tree = { root: null, nodes: new Map() };
   const steps = [];
@@ -1064,32 +1139,77 @@ function generateAvlScenario(caseName, sequence) {
   if (!rootBefore) {
     return steps;
   }
+  const insertedNode = find(tree, sequence[sequence.length - 1]);
 
   if (caseName === "LL") {
+    const leftChild = rootBefore.left;
+    addAvlDecisionStep(steps, tree, {
+      node: rootBefore,
+      child: leftChild,
+      inserted: insertedNode,
+      caseName: "LL",
+      codeLine: 6
+    });
     addAvlCaseStep(steps, tree, rootBefore, 6, "LL", "Баланс вузла 30 = +2, тому ліве піддерево занадто важке. Новий вузол лежить у ліво-лівому напрямку, отже правило AVL вимагає один RightRotate; після цього 20 має піднятися над 30.");
     rightRotateDetailed(tree, rootBefore, steps, {
       lineMap: rightRotateLineMap(),
       showAvlLabels: true,
       label: "AVL LL"
     });
+    addAvlHeightUpdateStep(steps, tree, {
+      caseName: "LL",
+      lowerNode: find(tree, 30),
+      subtreeRoot: find(tree, 20),
+      inserted: insertedNode,
+      codeLine: 7
+    });
   }
 
   if (caseName === "RR") {
+    const rightChild = rootBefore.right;
+    addAvlDecisionStep(steps, tree, {
+      node: rootBefore,
+      child: rightChild,
+      inserted: insertedNode,
+      caseName: "RR",
+      codeLine: 8
+    });
     addAvlCaseStep(steps, tree, rootBefore, 8, "RR", "Баланс вузла 10 = -2, тому праве піддерево занадто важке. Новий вузол лежить у право-правому напрямку, отже правило AVL вимагає один LeftRotate; після цього 20 має піднятися над 10.");
     leftRotateDetailed(tree, rootBefore, steps, {
       lineMap: leftRotateLineMap(),
       showAvlLabels: true,
       label: "AVL RR"
     });
+    addAvlHeightUpdateStep(steps, tree, {
+      caseName: "RR",
+      lowerNode: find(tree, 10),
+      subtreeRoot: find(tree, 20),
+      inserted: insertedNode,
+      codeLine: 9
+    });
   }
 
   if (caseName === "LR") {
     const leftChild = rootBefore.left;
+    addAvlDecisionStep(steps, tree, {
+      node: rootBefore,
+      child: leftChild,
+      inserted: insertedNode,
+      caseName: "LR",
+      codeLine: 11
+    });
     addAvlCaseStep(steps, tree, rootBefore, 11, "LR", "Баланс вузла 30 = +2, тому ліве піддерево занадто важке, але новий вузол прийшов у праву гілку лівого сина. Це випадок LR, тому спочатку треба виконати LeftRotate(leftChild), щоб перетворити форму на LL.");
     leftRotateDetailed(tree, leftChild, steps, {
       lineMap: leftRotateLineMap(),
       showAvlLabels: true,
       label: "AVL LR: перший поворот"
+    });
+    addAvlHeightUpdateStep(steps, tree, {
+      caseName: "LR (після 1-го повороту)",
+      lowerNode: find(tree, 10),
+      subtreeRoot: find(tree, 20),
+      inserted: insertedNode,
+      codeLine: 12
     });
     const newRoot = find(tree, 30);
     addStep(steps, tree, {
@@ -1106,15 +1226,36 @@ function generateAvlScenario(caseName, sequence) {
       showAvlLabels: true,
       label: "AVL LR: другий поворот"
     });
+    addAvlHeightUpdateStep(steps, tree, {
+      caseName: "LR (після 2-го повороту)",
+      lowerNode: find(tree, 30),
+      subtreeRoot: find(tree, 20),
+      inserted: insertedNode,
+      codeLine: 13
+    });
   }
 
   if (caseName === "RL") {
     const rightChild = rootBefore.right;
+    addAvlDecisionStep(steps, tree, {
+      node: rootBefore,
+      child: rightChild,
+      inserted: insertedNode,
+      caseName: "RL",
+      codeLine: 16
+    });
     addAvlCaseStep(steps, tree, rootBefore, 16, "RL", "Баланс вузла 10 = -2, тому праве піддерево занадто важке, але новий вузол прийшов у ліву гілку правого сина. Це випадок RL, тому спочатку треба виконати RightRotate(rightChild), щоб перетворити форму на RR.");
     rightRotateDetailed(tree, rightChild, steps, {
       lineMap: rightRotateLineMap(),
       showAvlLabels: true,
       label: "AVL RL: перший поворот"
+    });
+    addAvlHeightUpdateStep(steps, tree, {
+      caseName: "RL (після 1-го повороту)",
+      lowerNode: find(tree, 30),
+      subtreeRoot: find(tree, 20),
+      inserted: insertedNode,
+      codeLine: 17
     });
     const newRoot = find(tree, 10);
     addStep(steps, tree, {
@@ -1130,6 +1271,13 @@ function generateAvlScenario(caseName, sequence) {
       lineMap: leftRotateLineMap(),
       showAvlLabels: true,
       label: "AVL RL: другий поворот"
+    });
+    addAvlHeightUpdateStep(steps, tree, {
+      caseName: "RL (після 2-го повороту)",
+      lowerNode: find(tree, 10),
+      subtreeRoot: find(tree, 20),
+      inserted: insertedNode,
+      codeLine: 18
     });
   }
 
@@ -1194,6 +1342,93 @@ function addAvlCaseStep(steps, tree, node, codeLine, caseName, explanation) {
   });
 }
 
+function addAvlDecisionStep(steps, tree, options) {
+  const node = options.node;
+  const child = options.child ?? null;
+  const inserted = options.inserted ?? null;
+  const caseName = options.caseName;
+  const bf = signed(node.balanceFactor);
+
+  const roles = {
+    [node.id]: ["imbalanced", "rotation-pivot"]
+  };
+
+  if (child) {
+    roles[child.id] = "current";
+  }
+
+  if (inserted) {
+    roles[inserted.id] = "inserted";
+  }
+
+  const explanations = {
+    LL: `Визначення типу дисбалансу: у вузла ${node.value} balance factor = ${bf}, тобто ліве піддерево стало вищим. Вставка пішла в ліву гілку лівого сина (${child ? child.value : "?"}), тому це LL case. Виправлення: один RightRotate(${node.value}).`,
+    RR: `Визначення типу дисбалансу: у вузла ${node.value} balance factor = ${bf}, тобто праве піддерево стало вищим. Вставка пішла в праву гілку правого сина (${child ? child.value : "?"}), тому це RR case. Виправлення: один LeftRotate(${node.value}).`,
+    LR: `Визначення типу дисбалансу: у вузла ${node.value} balance factor = ${bf}, тобто ліве піддерево стало вищим. Але вставка пішла в праву гілку лівого сина (${child ? child.value : "?"}), тому це LR case. Одним RightRotate(${node.value}) це не виправляється. Виправлення: спочатку LeftRotate(${child ? child.value : "left child"}), потім RightRotate(${node.value}).`,
+    RL: `Визначення типу дисбалансу: у вузла ${node.value} balance factor = ${bf}, тобто праве піддерево стало вищим. Але вставка пішла в ліву гілку правого сина (${child ? child.value : "?"}), тому це RL case. Одним LeftRotate(${node.value}) це не виправляється. Виправлення: спочатку RightRotate(${child ? child.value : "right child"}), потім LeftRotate(${node.value}).`
+  };
+
+  addStep(steps, tree, {
+    activeNodeIds: [node.id, ...(child ? [child.id] : []), ...(inserted ? [inserted.id] : [])],
+    nodeRoles: roles,
+    codeLine: options.codeLine,
+    variables: {
+      node: node.value,
+      inserted: valueOf(inserted),
+      child: valueOf(child),
+      case: caseName,
+      "balance factor": bf,
+      decision: explanations[caseName]
+    },
+    explanation: explanations[caseName],
+    invariant: `⚠ Порушення: bf=${bf}, потрібне балансування`,
+    invariantStatus: "warning",
+    showAvlLabels: true
+  });
+}
+
+function addAvlHeightUpdateStep(steps, tree, options) {
+  const lowerNode = options.lowerNode ?? null;
+  const subtreeRoot = options.subtreeRoot ?? null;
+  const inserted = options.inserted ?? null;
+  const caseName = options.caseName;
+
+  const activeNodeIds = [];
+  const nodeRoles = {};
+
+  if (lowerNode) {
+    activeNodeIds.push(lowerNode.id);
+    nodeRoles[lowerNode.id] = "current";
+  }
+
+  if (subtreeRoot) {
+    activeNodeIds.push(subtreeRoot.id);
+    nodeRoles[subtreeRoot.id] = "rotation-pivot";
+  }
+
+  if (inserted) {
+    activeNodeIds.push(inserted.id);
+    nodeRoles[inserted.id] = "inserted";
+  }
+
+  addStep(steps, tree, {
+    activeNodeIds,
+    nodeRoles,
+    codeLine: options.codeLine,
+    variables: {
+      case: caseName,
+      lower: lowerNode ? `${lowerNode.value} (h=${lowerNode.height}, bf=${signed(lowerNode.balanceFactor)})` : "null",
+      "new subtree root": subtreeRoot ? `${subtreeRoot.value} (h=${subtreeRoot.height}, bf=${signed(subtreeRoot.balanceFactor)})` : "null",
+      root: valueOf(tree.root)
+    },
+    explanation: `Оновлення висот після повороту: зв'язки між вузлами змінилися, тому старі height вже неактуальні. Спочатку оновлюється нижній вузол, потім новий корінь піддерева; після цього balance factor повертається в нормальний діапазон [-1, 0, 1].`,
+    invariant: subtreeRoot
+      ? `AVL перевірка після повороту: bf(${subtreeRoot.value})=${signed(subtreeRoot.balanceFactor)}`
+      : "AVL перевірка після повороту виконана",
+    showAvlLabels: true
+  });
+}
+
 function leftRotateLineMap() {
   return { save: 24, moveB: 26, parent: 27, replace: 28, finish: 29 };
 }
@@ -1226,8 +1461,8 @@ function leftRotateDetailed(tree, x, steps, options) {
           [x.id]: "rotation-pivot"
         },
     codeLine: lines.save,
-    variables: { x: x.value, y: valueOf(y), B: valueOf(b), root: valueOf(tree.root) },
-    explanation: `${options.label}: зберігаємо y = x.Right, тобто вузол ${valueOf(y)} буде підніматися над x = ${x.value}. Це потрібно, бо лівий поворот завжди піднімає правого сина, і після цього кроку алгоритм має збережений вказівник y для безпечного перепідключення ребер.`,
+    variables: { x: x.value, y: valueOf(y), B: valueOf(b), T2: valueOf(b), root: valueOf(tree.root) },
+    explanation: `${options.label}: Крок 1 (до повороту). Поточний корінь піддерева — x=${x.value}, а вузол y=${valueOf(y)} (правий син x) підніматиметься вгору. У сценаріях AVL це відповідає ситуації, коли праве піддерево x занадто високе.`,
     invariant: y ? rotationInvariant(x, b, y) : "⚠ Порушення: у x немає правого сина, лівий поворот неможливий",
     invariantStatus: y ? "ok" : "warning",
     showAvlLabels: options.showAvlLabels
@@ -1254,8 +1489,8 @@ function leftRotateDetailed(tree, x, steps, options) {
           [y.id]: "current"
         },
     codeLine: lines.moveB,
-    variables: { x: x.value, y: y.value, B: valueOf(b), root: valueOf(tree.root) },
-    explanation: `${options.label}: виконуємо x.SetRight(y.Left), тому піддерево B=${formatValue(valueOf(b))} переходить із y до правого посилання x. Це потрібно, бо B більше за x і менше за y, тож після цього кроку B уже стоїть у правильному BST-місці відносно x.`,
+    variables: { x: x.value, y: y.value, B: valueOf(b), T2: valueOf(b), root: valueOf(tree.root) },
+    explanation: `${options.label}: Крок 2 (середнє піддерево T2). Беремо T2 = y.Left = ${formatValue(valueOf(b))} і переносимо його в x.Right. BST-порядок не ламається: всі ключі T2 більші за x, але менші за y.`,
     invariant: rotationInvariant(x, b, y),
     showAvlLabels: options.showAvlLabels
   });
@@ -1300,7 +1535,32 @@ function leftRotateDetailed(tree, x, steps, options) {
     },
     codeLine: lines.finish,
     variables: { x: x.value, y: y.value, B: valueOf(b), root: valueOf(tree.root) },
-    explanation: `${options.label}: виконуємо y.SetLeft(x), тому x стає лівим сином y. Це потрібно, бо x менший за y і має лишитися ліворуч; після цього лівий поворот завершено, а AVL-висоти та balance factor перераховані для нового стану.`,
+    explanation: `${options.label}: виконуємо y.SetLeft(x), тому x стає лівим сином y. Це фінальний технічний крок повороту перед підсумком перепідключення.`,
+    invariant: rotationInvariant(x, b, y),
+    showAvlLabels: options.showAvlLabels
+  });
+
+  addStep(steps, tree, {
+    activeNodeIds: b ? [x.id, y.id, b.id] : [x.id, y.id],
+    nodeRoles: b
+      ? {
+          [x.id]: "rotation-pivot",
+          [y.id]: "current",
+          [b.id]: "b-subtree"
+        }
+      : {
+          [x.id]: "rotation-pivot",
+          [y.id]: "current"
+        },
+    codeLine: lines.finish,
+    variables: {
+      "new subtree root": y.value,
+      "old subtree root": x.value,
+      T2: formatValue(valueOf(b)),
+      "x.Right": formatValue(valueOf(x.right)),
+      "y.Left": formatValue(valueOf(y.left))
+    },
+    explanation: `${options.label}: Крок 3 (перепідключення). y стає новим коренем піддерева, x стає лівим сином y, а T2 стає правим піддеревом x.`,
     invariant: rotationInvariant(x, b, y),
     showAvlLabels: options.showAvlLabels
   });
@@ -1322,8 +1582,8 @@ function rightRotateDetailed(tree, y, steps, options) {
           [y.id]: "rotation-pivot"
         },
     codeLine: lines.save,
-    variables: { x: valueOf(x), y: y.value, B: valueOf(b), root: valueOf(tree.root) },
-    explanation: `${options.label}: зберігаємо x = y.Left, тобто вузол ${valueOf(x)} буде підніматися над y = ${y.value}. Це потрібно, бо правий поворот завжди піднімає лівого сина, і після цього кроку алгоритм має збережений вказівник x для безпечного перепідключення ребер.`,
+    variables: { x: valueOf(x), y: y.value, B: valueOf(b), T2: valueOf(b), root: valueOf(tree.root) },
+    explanation: `${options.label}: Крок 1 (до повороту). Поточний корінь піддерева — y=${y.value}, а вузол x=${valueOf(x)} (лівий син y) підніматиметься вгору. У сценаріях AVL це відповідає ситуації, коли ліве піддерево y занадто високе.`,
     invariant: x ? rotationInvariant(x, b, y) : "⚠ Порушення: у y немає лівого сина, правий поворот неможливий",
     invariantStatus: x ? "ok" : "warning",
     showAvlLabels: options.showAvlLabels
@@ -1350,8 +1610,8 @@ function rightRotateDetailed(tree, y, steps, options) {
           [y.id]: "rotation-pivot"
         },
     codeLine: lines.moveB,
-    variables: { x: x.value, y: y.value, B: valueOf(b), root: valueOf(tree.root) },
-    explanation: `${options.label}: виконуємо y.SetLeft(x.Right), тому піддерево B=${formatValue(valueOf(b))} переходить із x до лівого посилання y. Це потрібно, бо B більше за x і менше за y, тож після цього кроку B уже стоїть у правильному BST-місці відносно y.`,
+    variables: { x: x.value, y: y.value, B: valueOf(b), T2: valueOf(b), root: valueOf(tree.root) },
+    explanation: `${options.label}: Крок 2 (середнє піддерево T2). Беремо T2 = x.Right = ${formatValue(valueOf(b))} і переносимо його в y.Left. BST-порядок не ламається: всі ключі T2 більші за x, але менші за y.`,
     invariant: rotationInvariant(x, b, y),
     showAvlLabels: options.showAvlLabels
   });
@@ -1396,7 +1656,32 @@ function rightRotateDetailed(tree, y, steps, options) {
     },
     codeLine: lines.finish,
     variables: { x: x.value, y: y.value, B: valueOf(b), root: valueOf(tree.root) },
-    explanation: `${options.label}: виконуємо x.SetRight(y), тому y стає правим сином x. Це потрібно, бо y більший за x і має лишитися праворуч; після цього правий поворот завершено, а AVL-висоти та balance factor перераховані для нового стану.`,
+    explanation: `${options.label}: виконуємо x.SetRight(y), тому y стає правим сином x. Це фінальний технічний крок повороту перед підсумком перепідключення.`,
+    invariant: rotationInvariant(x, b, y),
+    showAvlLabels: options.showAvlLabels
+  });
+
+  addStep(steps, tree, {
+    activeNodeIds: b ? [x.id, y.id, b.id] : [x.id, y.id],
+    nodeRoles: b
+      ? {
+          [x.id]: "current",
+          [y.id]: "rotation-pivot",
+          [b.id]: "b-subtree"
+        }
+      : {
+          [x.id]: "current",
+          [y.id]: "rotation-pivot"
+        },
+    codeLine: lines.finish,
+    variables: {
+      "new subtree root": x.value,
+      "old subtree root": y.value,
+      T2: formatValue(valueOf(b)),
+      "y.Left": formatValue(valueOf(y.left)),
+      "x.Right": formatValue(valueOf(x.right))
+    },
+    explanation: `${options.label}: Крок 3 (перепідключення). x стає новим коренем піддерева, y стає правим сином x, а T2 стає лівим піддеревом y.`,
     invariant: rotationInvariant(x, b, y),
     showAvlLabels: options.showAvlLabels
   });
@@ -1661,19 +1946,97 @@ function generateAvlCustom(values, insertValue) {
   }
 
   if (unbalanced.balanceFactor > 1 && insertValue < unbalanced.left.value) {
+    addAvlDecisionStep(steps, tree, {
+      node: unbalanced,
+      child: unbalanced.left,
+      inserted,
+      caseName: "LL",
+      codeLine: 6
+    });
     addAvlCaseStep(steps, tree, unbalanced, 6, "LL", `Виявлено LL: bf вузла ${unbalanced.value} = ${signed(unbalanced.balanceFactor)}, а новий вузол лежить у лівій гілці лівого сина. Це вимагає RightRotate(${unbalanced.value}); після повороту лівий син підніметься вгору.`);
     rightRotateDetailed(tree, unbalanced, steps, { lineMap: rightRotateLineMap(), showAvlLabels: true, label: "AVL LL" });
+    const lowerNode = find(tree, unbalanced.value);
+    addAvlHeightUpdateStep(steps, tree, {
+      caseName: "LL",
+      lowerNode,
+      subtreeRoot: lowerNode ? lowerNode.parent : null,
+      inserted,
+      codeLine: 7
+    });
   } else if (unbalanced.balanceFactor < -1 && insertValue > unbalanced.right.value) {
+    addAvlDecisionStep(steps, tree, {
+      node: unbalanced,
+      child: unbalanced.right,
+      inserted,
+      caseName: "RR",
+      codeLine: 8
+    });
     addAvlCaseStep(steps, tree, unbalanced, 8, "RR", `Виявлено RR: bf вузла ${unbalanced.value} = ${signed(unbalanced.balanceFactor)}, а новий вузол лежить у правій гілці правого сина. Це вимагає LeftRotate(${unbalanced.value}); після повороту правий син підніметься вгору.`);
     leftRotateDetailed(tree, unbalanced, steps, { lineMap: leftRotateLineMap(), showAvlLabels: true, label: "AVL RR" });
+    const lowerNode = find(tree, unbalanced.value);
+    addAvlHeightUpdateStep(steps, tree, {
+      caseName: "RR",
+      lowerNode,
+      subtreeRoot: lowerNode ? lowerNode.parent : null,
+      inserted,
+      codeLine: 9
+    });
   } else if (unbalanced.balanceFactor > 1) {
+    addAvlDecisionStep(steps, tree, {
+      node: unbalanced,
+      child: unbalanced.left,
+      inserted,
+      caseName: "LR",
+      codeLine: 11
+    });
     addAvlCaseStep(steps, tree, unbalanced, 11, "LR", `Виявлено LR: bf вузла ${unbalanced.value} = ${signed(unbalanced.balanceFactor)}, але новий вузол у правій гілці лівого сина. Це вимагає LeftRotate(leftChild), а потім RightRotate(${unbalanced.value}).`);
+    const firstPivotValue = unbalanced.left.value;
     leftRotateDetailed(tree, unbalanced.left, steps, { lineMap: leftRotateLineMap(), showAvlLabels: true, label: "AVL LR: перший поворот" });
+    const firstLowerNode = find(tree, firstPivotValue);
+    addAvlHeightUpdateStep(steps, tree, {
+      caseName: "LR (після 1-го повороту)",
+      lowerNode: firstLowerNode,
+      subtreeRoot: firstLowerNode ? firstLowerNode.parent : null,
+      inserted,
+      codeLine: 12
+    });
     rightRotateDetailed(tree, unbalanced, steps, { lineMap: rightRotateLineMap(), showAvlLabels: true, label: "AVL LR: другий поворот" });
+    const secondLowerNode = find(tree, unbalanced.value);
+    addAvlHeightUpdateStep(steps, tree, {
+      caseName: "LR (після 2-го повороту)",
+      lowerNode: secondLowerNode,
+      subtreeRoot: secondLowerNode ? secondLowerNode.parent : null,
+      inserted,
+      codeLine: 13
+    });
   } else {
+    addAvlDecisionStep(steps, tree, {
+      node: unbalanced,
+      child: unbalanced.right,
+      inserted,
+      caseName: "RL",
+      codeLine: 16
+    });
     addAvlCaseStep(steps, tree, unbalanced, 16, "RL", `Виявлено RL: bf вузла ${unbalanced.value} = ${signed(unbalanced.balanceFactor)}, але новий вузол у лівій гілці правого сина. Це вимагає RightRotate(rightChild), а потім LeftRotate(${unbalanced.value}).`);
+    const firstPivotValue = unbalanced.right.value;
     rightRotateDetailed(tree, unbalanced.right, steps, { lineMap: rightRotateLineMap(), showAvlLabels: true, label: "AVL RL: перший поворот" });
+    const firstLowerNode = find(tree, firstPivotValue);
+    addAvlHeightUpdateStep(steps, tree, {
+      caseName: "RL (після 1-го повороту)",
+      lowerNode: firstLowerNode,
+      subtreeRoot: firstLowerNode ? firstLowerNode.parent : null,
+      inserted,
+      codeLine: 17
+    });
     leftRotateDetailed(tree, unbalanced, steps, { lineMap: leftRotateLineMap(), showAvlLabels: true, label: "AVL RL: другий поворот" });
+    const secondLowerNode = find(tree, unbalanced.value);
+    addAvlHeightUpdateStep(steps, tree, {
+      caseName: "RL (після 2-го повороту)",
+      lowerNode: secondLowerNode,
+      subtreeRoot: secondLowerNode ? secondLowerNode.parent : null,
+      inserted,
+      codeLine: 18
+    });
   }
 
   addStep(steps, tree, {
@@ -1690,17 +2053,551 @@ function generateAvlCustom(values, insertValue) {
   return steps;
 }
 
+function generateAvlDeleteScenario() {
+  const tree = buildBst([30, 20, 40, 10, 35, 50, 60]);
+  const steps = [];
+  const target = 10;
+
+  const root = find(tree, 30);
+  const node20 = find(tree, 20);
+  const node40 = find(tree, 40);
+  const z = find(tree, target);
+
+  addStep(steps, tree, {
+    activeNodeIds: [root.id],
+    nodeRoles: {
+      [root.id]: "root",
+      [node20.id]: "current",
+      [node40.id]: "current"
+    },
+    codeLine: 0,
+    variables: {
+      root: valueOf(tree.root),
+      target,
+      note: "Початковий стан AVL перед delete",
+      "root bf": signed(root.balanceFactor)
+    },
+    explanation: "Крок 1. Початкове AVL-дерево: усі вузли мають коректні h/bf, дерево збалансоване.",
+    invariant: "AVL інваріант: всі bf у межах [-1, 0, 1] ✓",
+    showAvlLabels: true
+  });
+
+  addStep(steps, tree, {
+    activeNodeIds: [root.id],
+    nodeRoles: {
+      [root.id]: "current"
+    },
+    codeLine: 2,
+    variables: { node: 30, target, decision: "10 < 30 → йдемо вліво" },
+    explanation: "Крок 2. Пошук вузла для delete іде так само, як у BST: порівнюємо ключ і обираємо гілку.",
+    invariant: "BST-пошук по інваріанту порядку ✓",
+    showAvlLabels: true
+  });
+
+  addStep(steps, tree, {
+    activeNodeIds: [root.id, node20.id],
+    nodeRoles: {
+      [root.id]: "parent",
+      [node20.id]: "current"
+    },
+    codeLine: 2,
+    variables: { node: 20, target, decision: "10 < 20 → йдемо вліво" },
+    explanation: "Продовжуємо шлях пошуку: 30 → 20.",
+    invariant: "Пошук лишається коректним ✓",
+    showAvlLabels: true
+  });
+
+  addStep(steps, tree, {
+    activeNodeIds: [node20.id, z.id],
+    nodeRoles: {
+      [node20.id]: "parent",
+      [z.id]: "current"
+    },
+    codeLine: 2,
+    variables: { node: z.value, target, found: true },
+    explanation: "Знайдено вузол 10. У цьому прикладі це листок, тому для BST-частини delete це найпростіший випадок.",
+    invariant: "Leaf-випадок: successor не потрібен ✓",
+    showAvlLabels: true
+  });
+
+  addStep(steps, tree, {
+    activeNodeIds: [z.id, node20.id],
+    nodeRoles: {
+      [z.id]: "current",
+      [node20.id]: "parent"
+    },
+    codeLine: 2,
+    variables: { case: "leaf", operation: "Transplant(z, null)", z: z.value },
+    explanation: "Крок 3. Видаляємо вузол як у BST: листок 10 просто від'єднуємо.",
+    invariant: "BST delete (leaf) виконано ✓",
+    showAvlLabels: true
+  });
+
+  transplant(tree, z, null);
+  z.parent = null;
+
+  addStep(steps, tree, {
+    detachedRootIds: [z.id],
+    activeNodeIds: [node20.id],
+    nodeRoles: {
+      [node20.id]: "parent"
+    },
+    codeLine: 3,
+    variables: { removed: 10, "20.Left": "null", note: "Фізичне видалення завершено" },
+    explanation: "Крок 4. BST-видалення завершене, але AVL delete ще ні: треба повернутися до предків і оновити висоти.",
+    invariant: "Після фізичного delete потрібна AVL-перевірка",
+    showAvlLabels: true
+  });
+
+  const ancestors = pathToRoot(node20);
+  ancestors.forEach((node) => {
+    recomputeAll(tree);
+    addStep(steps, tree, {
+      activeNodeIds: [node.id],
+      nodeRoles: Math.abs(node.balanceFactor) <= 1
+        ? { [node.id]: "current" }
+        : { [node.id]: ["current", "imbalanced"] },
+      codeLine: 6,
+      variables: {
+        node: node.value,
+        height: node.height,
+        "balance factor": signed(node.balanceFactor)
+      },
+      explanation: `Крок 5. Для предка ${node.value}: оновлюємо height і рахуємо bf = h(left) - h(right).`,
+      invariant: Math.abs(node.balanceFactor) <= 1
+        ? `Вузол ${node.value} в нормі: bf=${signed(node.balanceFactor)}`
+        : `⚠ Вузол ${node.value} розбалансований: bf=${signed(node.balanceFactor)}`,
+      invariantStatus: Math.abs(node.balanceFactor) <= 1 ? "ok" : "warning",
+      showAvlLabels: true
+    });
+  });
+
+  const unbalanced = find(tree, 30);
+  const child = unbalanced.right;
+  addStep(steps, tree, {
+    activeNodeIds: [unbalanced.id, child.id],
+    nodeRoles: {
+      [unbalanced.id]: ["imbalanced", "rotation-pivot"],
+      [child.id]: "current"
+    },
+    codeLine: 16,
+    variables: {
+      node: unbalanced.value,
+      "node bf": signed(unbalanced.balanceFactor),
+      child: child.value,
+      "child bf": signed(child.balanceFactor),
+      rule: "right-heavy + child bf <= 0 => RR => LeftRotate(node)"
+    },
+    explanation: "Крок 6. Визначення case після delete: bf(30)=-2 і bf(40)<=0, отже це RR-випадок після delete.",
+    invariant: "Після delete case визначається за bf вузла і bf дитини",
+    invariantStatus: "warning",
+    showAvlLabels: true
+  });
+
+  addStep(steps, tree, {
+    activeNodeIds: [unbalanced.id, child.id],
+    nodeRoles: {
+      [unbalanced.id]: "rotation-pivot",
+      [child.id]: "current"
+    },
+    codeLine: 17,
+    variables: {
+      rotation: "LeftRotate(30)",
+      reason: "RR case після delete"
+    },
+    explanation: "Крок 7. Виконуємо rotation для RR-випадку: LeftRotate(30). Детальні підкроки повороту показані далі.",
+    invariant: "Rotation має зберегти BST-порядок і прибрати локальний дисбаланс",
+    showAvlLabels: true
+  });
+
+  leftRotateDetailed(tree, unbalanced, steps, {
+    lineMap: leftRotateLineMap(),
+    showAvlLabels: true,
+    label: "AVL delete: RR fix"
+  });
+
+  addStep(steps, tree, {
+    activeNodeIds: [find(tree, 30).id, find(tree, 40).id],
+    nodeRoles: {
+      [find(tree, 30).id]: "current",
+      [find(tree, 40).id]: "rotation-pivot"
+    },
+    codeLine: 17,
+    variables: {
+      lower: 30,
+      "new subtree root": 40,
+      note: "Оновлення height після rotation"
+    },
+    explanation: "Крок 8. Після повороту зв'язки змінилися, тому old height вже не валідні: спочатку оновлюємо нижній вузол, потім новий корінь піддерева.",
+    invariant: "Перед фінальною перевіркою треба перерахувати h і bf",
+    showAvlLabels: true
+  });
+
+  addAvlHeightUpdateStep(steps, tree, {
+    caseName: "AVL delete RR",
+    lowerNode: find(tree, 30),
+    subtreeRoot: find(tree, 40),
+    codeLine: 17
+  });
+
+  const finalRoot = tree.root;
+  addStep(steps, tree, {
+    activeNodeIds: [finalRoot.id],
+    nodeRoles: {
+      [finalRoot.id]: "root"
+    },
+    codeLine: 22,
+    variables: {
+      root: finalRoot.value,
+      "root bf": signed(finalRoot.balanceFactor),
+      summary: "AVL delete = BST delete + rebalance вгору до кореня"
+    },
+    explanation: "Крок 9. Фінальне дерево: після rotation і оновлення висот усі bf знову в межах -1, 0, 1.",
+    invariant: "AVL інваріант відновлено ✓",
+    showAvlLabels: true,
+    finalStep: true
+  });
+
+  return steps;
+}
+
+function rbSetColor(node, color) {
+  if (node) {
+    node.color = color;
+  }
+}
+
+function rbColorOf(node) {
+  return node ? node.color ?? "black" : "black";
+}
+
+function leftRotateBasic(tree, x) {
+  if (!x || !x.right) {
+    return x;
+  }
+
+  const y = x.right;
+  const t2 = y.left;
+
+  setRight(x, t2);
+  replaceAtParent(tree, x, y);
+  setLeft(y, x);
+  recomputeAll(tree);
+  return y;
+}
+
+function rightRotateBasic(tree, y) {
+  if (!y || !y.left) {
+    return y;
+  }
+
+  const x = y.left;
+  const t2 = x.right;
+
+  setLeft(y, t2);
+  replaceAtParent(tree, y, x);
+  setRight(x, y);
+  recomputeAll(tree);
+  return x;
+}
+
+function addRbStep(steps, tree, options = {}) {
+  addStep(steps, tree, {
+    ...options,
+    operationLabel: options.operationLabel ?? "rb-insert",
+    nodeColors: options.nodeColors ?? extractNodeColors(tree)
+  });
+}
+
+function generateRbInsertScenario() {
+  const tree = { root: null, nodes: new Map() };
+  const steps = [];
+  const sequence = [41, 38, 31, 12, 19, 8];
+
+  addRbStep(steps, tree, {
+    codeLine: 0,
+    variables: {
+      sequence: `[${sequence.join(", ")}]`,
+      root: null
+    },
+    explanation: "Починаємо Red-Black insert demo для ключів 41, 38, 31, 12, 19, 8. На кожній вставці: BST-крок, початковий red, fixup через uncle/parent/grandparent, і перевірка root=black.",
+    invariant: "RB старт: порожнє дерево коректне."
+  });
+
+  let z = insertPlain(tree, 41);
+  rbSetColor(z, "red");
+  addRbStep(steps, tree, {
+    activeNodeIds: [z.id],
+    nodeRoles: { [z.id]: "inserted" },
+    codeLine: 3,
+    variables: { insert: 41, "new color": "red", parent: valueOf(z.parent), root: valueOf(tree.root) },
+    explanation: "Вставка 41: додаємо вузол як у BST. Новий вузол спочатку завжди red.",
+    invariant: "Тимчасово root може бути red до фінального кроку fixup."
+  });
+
+  rbSetColor(tree.root, "black");
+  addRbStep(steps, tree, {
+    activeNodeIds: [tree.root.id],
+    nodeRoles: { [tree.root.id]: "root" },
+    codeLine: 42,
+    variables: { root: valueOf(tree.root), "root color": rbColorOf(tree.root) },
+    explanation: "41 став коренем, тому одразу фарбуємо root у black. Властивість RB: корінь завжди чорний.",
+    invariant: "RB ✓ root = black"
+  });
+
+  z = insertPlain(tree, 38);
+  rbSetColor(z, "red");
+  addRbStep(steps, tree, {
+    activeNodeIds: [z.id, z.parent.id],
+    nodeRoles: { [z.id]: "inserted", [z.parent.id]: "parent" },
+    codeLine: 3,
+    variables: {
+      insert: 38,
+      parent: `${z.parent.value} (${rbColorOf(z.parent)})`,
+      grandparent: null,
+      uncle: "null (black)"
+    },
+    explanation: "Вставка 38: вузол став лівим сином 41 і отримав red. Parent = 41 black, тому порушення немає.",
+    invariant: "RB ✓ red-вузол має black-батька, fixup не потрібен."
+  });
+
+  addRbStep(steps, tree, {
+    activeNodeIds: [tree.root.id],
+    nodeRoles: { [tree.root.id]: "root" },
+    codeLine: 5,
+    variables: { root: `${tree.root.value} (${rbColorOf(tree.root)})`, status: "fixup skipped" },
+    explanation: "Fixup для 38 пропускаємо: while(parent is red) не входить, бо parent чорний.",
+    invariant: "RB ✓ дерево валідне після вставки 38."
+  });
+
+  z = insertPlain(tree, 31);
+  rbSetColor(z, "red");
+  let p = z.parent;
+  let g = p.parent;
+  let u = g.right;
+  addRbStep(steps, tree, {
+    activeNodeIds: [z.id, p.id, g.id],
+    nodeRoles: { [z.id]: "inserted", [p.id]: "parent", [g.id]: "rotation-pivot", ...(u ? { [u.id]: "successor" } : {}) },
+    codeLine: 5,
+    variables: {
+      insert: 31,
+      parent: `${p.value} (${rbColorOf(p)})`,
+      grandparent: `${g.value} (${rbColorOf(g)})`,
+      uncle: u ? `${u.value} (${rbColorOf(u)})` : "null (black)"
+    },
+    explanation: "Вставка 31: маємо порушення red-parent + red-child (31 і 38). Uncle = null/black, отже це гілка з rotation.",
+    invariant: "⚠ RB порушення: два червоні підряд."
+  });
+
+  addRbStep(steps, tree, {
+    activeNodeIds: [z.id, p.id, g.id],
+    nodeRoles: { [z.id]: "inserted", [p.id]: "parent", [g.id]: "rotation-pivot" },
+    codeLine: 18,
+    variables: {
+      case: "left-left",
+      action: "RightRotate(41) + recolor"
+    },
+    explanation: "Для 31 це left-left case: parent є лівою дитиною grandparent, а новий вузол також у лівій гілці. Робимо RightRotate(41)."
+  });
+
+  rightRotateBasic(tree, g);
+  rbSetColor(find(tree, 38), "black");
+  rbSetColor(find(tree, 41), "red");
+  rbSetColor(tree.root, "black");
+  addRbStep(steps, tree, {
+    activeNodeIds: [find(tree, 38).id, find(tree, 41).id],
+    nodeRoles: { [find(tree, 38).id]: "root", [find(tree, 41).id]: "current" },
+    codeLine: 22,
+    variables: {
+      rotation: "RightRotate(41)",
+      recolor: "38 -> black, 41 -> red",
+      root: `${tree.root.value} (${rbColorOf(tree.root)})`
+    },
+    explanation: "Після повороту 38 піднімається вгору. Перефарбовуємо: 38 black, 41 red. Root лишається black.",
+    invariant: "RB ✓ порушення усунуте."
+  });
+
+  z = insertPlain(tree, 12);
+  rbSetColor(z, "red");
+  p = z.parent;
+  g = p.parent;
+  u = g.right;
+  addRbStep(steps, tree, {
+    activeNodeIds: [z.id, p.id, g.id, u.id],
+    nodeRoles: { [z.id]: "inserted", [p.id]: "parent", [g.id]: "rotation-pivot", [u.id]: "successor" },
+    codeLine: 12,
+    variables: {
+      insert: 12,
+      parent: `${p.value} (${rbColorOf(p)})`,
+      grandparent: `${g.value} (${rbColorOf(g)})`,
+      uncle: `${u.value} (${rbColorOf(u)})`,
+      case: "parent red + uncle red"
+    },
+    explanation: "Вставка 12: parent=31 red і uncle=41 red. Це recoloring-case без rotation.",
+    invariant: "⚠ Локальне порушення перед fixup."
+  });
+
+  rbSetColor(p, "black");
+  rbSetColor(u, "black");
+  rbSetColor(g, "red");
+  addRbStep(steps, tree, {
+    activeNodeIds: [p.id, g.id, u.id],
+    nodeRoles: { [p.id]: "parent", [g.id]: "rotation-pivot", [u.id]: "successor" },
+    codeLine: 14,
+    variables: {
+      recolor: `${p.value}->black, ${u.value}->black, ${g.value}->red`,
+      next: "перевіряємо вище"
+    },
+    explanation: "Recoloring: parent і uncle стають black, grandparent стає red. Далі fixup продовжується вище від grandparent.",
+    invariant: "Після recoloring перевіряємо правило для предка."
+  });
+
+  rbSetColor(tree.root, "black");
+  addRbStep(steps, tree, {
+    activeNodeIds: [tree.root.id],
+    nodeRoles: { [tree.root.id]: "root" },
+    codeLine: 42,
+    variables: { root: `${tree.root.value} (${rbColorOf(tree.root)})` },
+    explanation: "Повертаємо root у black. Для цього кроку це вузол 38.",
+    invariant: "RB ✓ root = black"
+  });
+
+  z = insertPlain(tree, 19);
+  rbSetColor(z, "red");
+  p = z.parent;
+  g = p.parent;
+  u = g.right;
+  addRbStep(steps, tree, {
+    activeNodeIds: [z.id, p.id, g.id],
+    nodeRoles: { [z.id]: "inserted", [p.id]: "parent", [g.id]: "rotation-pivot", ...(u ? { [u.id]: "successor" } : {}) },
+    codeLine: 18,
+    variables: {
+      insert: 19,
+      parent: `${p.value} (${rbColorOf(p)})`,
+      grandparent: `${g.value} (${rbColorOf(g)})`,
+      uncle: u ? `${u.value} (${rbColorOf(u)})` : "null (black)",
+      case: "left-right"
+    },
+    explanation: "Вставка 19: parent=12 red, uncle=null/black. Це left-right case: одним RightRotate(31) одразу не виправиться.",
+    invariant: "⚠ Потрібна подвійна ротація (LR-логіка для RB fixup)."
+  });
+
+  leftRotateBasic(tree, p);
+  addRbStep(steps, tree, {
+    activeNodeIds: [find(tree, 12).id, find(tree, 19).id, find(tree, 31).id],
+    nodeRoles: {
+      [find(tree, 19).id]: "current",
+      [find(tree, 12).id]: "parent",
+      [find(tree, 31).id]: "rotation-pivot"
+    },
+    codeLine: 20,
+    variables: {
+      step: "1/2",
+      rotation: "LeftRotate(12)",
+      effect: "перетворюємо на left-left відносно 31"
+    },
+    explanation: "Крок 1 для 19: LeftRotate(12), щоб перетворити конфігурацію на left-left відносно grandparent.",
+    invariant: "Підготовка до другого повороту."
+  });
+
+  rightRotateBasic(tree, find(tree, 31));
+  rbSetColor(find(tree, 19), "black");
+  rbSetColor(find(tree, 31), "red");
+  rbSetColor(tree.root, "black");
+  addRbStep(steps, tree, {
+    activeNodeIds: [find(tree, 19).id, find(tree, 31).id],
+    nodeRoles: { [find(tree, 19).id]: "current", [find(tree, 31).id]: "rotation-pivot" },
+    codeLine: 22,
+    variables: {
+      step: "2/2",
+      rotation: "RightRotate(31)",
+      recolor: "19 -> black, 31 -> red",
+      root: `${tree.root.value} (${rbColorOf(tree.root)})`
+    },
+    explanation: "Крок 2 для 19: RightRotate(31), потім перефарбування 19->black і 31->red. Root залишається black.",
+    invariant: "RB ✓ порушення для вставки 19 виправлене."
+  });
+
+  z = insertPlain(tree, 8);
+  rbSetColor(z, "red");
+  p = z.parent;
+  g = p.parent;
+  u = g.right;
+  addRbStep(steps, tree, {
+    activeNodeIds: [z.id, p.id, g.id, u.id],
+    nodeRoles: { [z.id]: "inserted", [p.id]: "parent", [g.id]: "rotation-pivot", [u.id]: "successor" },
+    codeLine: 12,
+    variables: {
+      insert: 8,
+      parent: `${p.value} (${rbColorOf(p)})`,
+      grandparent: `${g.value} (${rbColorOf(g)})`,
+      uncle: `${u.value} (${rbColorOf(u)})`,
+      case: "parent red + uncle red"
+    },
+    explanation: "Вставка 8: parent=12 red і uncle=31 red, отже знову recoloring-case.",
+    invariant: "⚠ Потрібен recoloring перед рухом вище."
+  });
+
+  rbSetColor(p, "black");
+  rbSetColor(u, "black");
+  rbSetColor(g, "red");
+  addRbStep(steps, tree, {
+    activeNodeIds: [p.id, g.id, u.id],
+    nodeRoles: { [p.id]: "parent", [g.id]: "rotation-pivot", [u.id]: "successor" },
+    codeLine: 14,
+    variables: {
+      recolor: `${p.value}->black, ${u.value}->black, ${g.value}->red`,
+      next: "перевіряємо предків вище"
+    },
+    explanation: "Робимо recoloring: 12 і 31 стають black, 19 стає red. Підіймаємось вище для перевірки подальших порушень.",
+    invariant: "Fixup триває вгору по дереву."
+  });
+
+  rbSetColor(tree.root, "black");
+  const n38 = find(tree, 38);
+  const n19 = find(tree, 19);
+  addRbStep(steps, tree, {
+    activeNodeIds: [n38.id, n19.id],
+    nodeRoles: { [n38.id]: "root", [n19.id]: "parent" },
+    codeLine: 42,
+    variables: {
+      check: "parent(19)=38 black, додаткових порушень немає",
+      root: `${n38.value} (${rbColorOf(n38)})`
+    },
+    explanation: "Після підйому вище маємо black-батька, тож fixup завершується. Root обов'язково лишається black.",
+    invariant: "RB ✓ усі властивості відновлено."
+  });
+
+  addRbStep(steps, tree, {
+    activeNodeIds: [tree.root.id],
+    nodeRoles: { [tree.root.id]: "root" },
+    codeLine: 43,
+    variables: {
+      root: `${tree.root.value} (${rbColorOf(tree.root)})`,
+      final: "38(B) -> left 19(R), right 41(B); 19.left=12(B), 19.right=31(B), 12.left=8(R)"
+    },
+    explanation: "Фінальне дерево після послідовної вставки 41, 38, 31, 12, 19, 8. Підсумок: RB insert = BST insert + fixup (recoloring/rotations) + root black.",
+    invariant: "RB фінал ✓ root black, red-вузли мають black-дітей, BST-порядок збережено.",
+    finalStep: true
+  });
+
+  return steps;
+}
+
 const SCENARIO_BUILDERS = {
   "bst-search": () => generateSearchScenario([20, 10, 30, 5, 15], 15),
   "delete-leaf": () => generateDeleteLeafScenario(),
   "delete-one-child": () => generateDeleteOneChildScenario(),
   "delete-two-children": () => generateDeleteTwoChildrenScenario(),
+  "transplant-basic": () => generateTransplantScenario(),
   "left-rotate": () => generateLeftRotateScenario(),
   "right-rotate": () => generateRightRotateScenario(),
   "avl-ll": () => generateAvlScenario("LL", [30, 20, 10]),
   "avl-rr": () => generateAvlScenario("RR", [10, 20, 30]),
   "avl-lr": () => generateAvlScenario("LR", [30, 10, 20]),
-  "avl-rl": () => generateAvlScenario("RL", [10, 30, 20])
+  "avl-rl": () => generateAvlScenario("RL", [10, 30, 20]),
+  "avl-delete-demo": () => generateAvlDeleteScenario(),
+  "rb-insert-sequence": () => generateRbInsertScenario()
 };
 
 function signed(number) {
@@ -1867,9 +2764,11 @@ function drawNodes(snapshot, nodeIdValue, positions, step, isDetached, visited =
   const isRoot = nodeIdValue === snapshot.rootId;
   const isActive = step.activeNodeIds.includes(nodeIdValue);
   const roleClasses = Array.isArray(step.nodeRoles?.[nodeIdValue]) ? step.nodeRoles[nodeIdValue] : [];
+  const rbColor = step.nodeColors?.[nodeIdValue];
+  const rbClass = rbColor === "red" || rbColor === "black" ? ` rb-${rbColor}` : "";
 
   const group = createSvgElement("g");
-  group.setAttribute("class", `tree-node ${roleClasses.join(" ")}${isActive ? " active" : ""}${isRoot ? " is-root" : ""}`.trim());
+  group.setAttribute("class", `tree-node${rbClass} ${roleClasses.join(" ")}${isActive ? " active" : ""}${isRoot ? " is-root" : ""}`.trim());
   group.setAttribute("transform", `translate(${position.x}, ${position.y})`);
 
   const circle = createSvgElement("circle");
@@ -1981,12 +2880,15 @@ function renderExplanation(step) {
         "delete-leaf": "bstDelete",
         "delete-one-child": "bstDelete",
         "delete-two-children": "bstDelete",
+        "transplant-basic": "bstTransplant",
         "left-rotate": "leftRotate",
         "right-rotate": "rightRotate",
         "avl-ll": "avlLL",
         "avl-rr": "avlRR",
         "avl-lr": "avlLR",
-        "avl-rl": "avlRL"
+        "avl-rl": "avlRL",
+        "avl-delete-demo": "avlDelete",
+        "rb-insert-sequence": "rbInsert"
       };
 
       hintKey = hintMap[id] ?? (id.includes("avl") ? "avlInsert" : "default");
@@ -2106,7 +3008,25 @@ function renderCustomFields(topic) {
   clearCustomError();
   const placeholder = "30, 20, 10, 25";
 
-  if (topic.customType === "search") {
+  if (topic.customType === "transplant") {
+    customFields.innerHTML = `
+      <div class="custom-row">
+        <button id="customRunBtn" type="button">Запустити демонстрацію Transplant</button>
+      </div>
+    `;
+  } else if (topic.customType === "avlDelete") {
+    customFields.innerHTML = `
+      <div class="custom-row">
+        <button id="customRunBtn" type="button">Запустити AVL delete demo</button>
+      </div>
+    `;
+  } else if (topic.customType === "rbInsert") {
+    customFields.innerHTML = `
+      <div class="custom-row">
+        <button id="customRunBtn" type="button">Запустити RB insert demo (41, 38, 31, 12, 19, 8)</button>
+      </div>
+    `;
+  } else if (topic.customType === "search") {
     customFields.innerHTML = `
       <div class="custom-row">
         <input id="customValuesInput" type="text" placeholder="Числа: ${placeholder}">
@@ -2167,6 +3087,24 @@ function renderCustomFields(topic) {
 
 function runCustomScenario(topic) {
   clearCustomError();
+  if (topic.customType === "transplant") {
+    const customSteps = generateTransplantScenario();
+    loadScenario("transplant-basic", customSteps, "BST Transplant: покрокова демонстрація", "transplant");
+    return;
+  }
+
+  if (topic.customType === "avlDelete") {
+    const customSteps = generateAvlDeleteScenario();
+    loadScenario("avl-delete-demo", customSteps, "AVL delete: покрокова демонстрація", "avlDelete");
+    return;
+  }
+
+  if (topic.customType === "rbInsert") {
+    const customSteps = generateRbInsertScenario();
+    loadScenario("rb-insert-sequence", customSteps, "Red-Black Tree insert: 41, 38, 31, 12, 19, 8", "rbInsert");
+    return;
+  }
+
   const values = parseNumbers(document.getElementById("customValuesInput").value);
   const actionValue = Number(document.getElementById("customActionInput").value);
 

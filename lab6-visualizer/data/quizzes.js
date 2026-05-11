@@ -45,6 +45,29 @@ export const quizDefinitions = {
       }
     ]
   },
+  bstTransplant: {
+    title: "Квіз: BST Transplant",
+    questions: [
+      {
+        text: "Що робить Transplant(u, v) у BST?",
+        options: ["Копіює значення u у v", "Замінює вузол u вузлом v у посиланні батька", "Видаляє піддерево v", "Шукає successor"],
+        correct: 1,
+        why: "Transplant переприв'язує місце u на v через батьківський вказівник або root."
+      },
+      {
+        text: "Що відбувається, якщо u був коренем?",
+        options: ["Нічого", "Видаляється все дерево", "root стає v", "v стає лівим сином u"],
+        correct: 2,
+        why: "Коли u.Parent == null, операція напряму оновлює root = v."
+      },
+      {
+        text: "Що Transplant НЕ робить автоматично?",
+        options: ["Оновлення parent у v", "Перепідключення root", "Перенесення дітей u під v", "Заміну лівого/правого посилання батька u"],
+        correct: 2,
+        why: "Transplant — локальна операція заміни місця u; структуру піддерев доводиться добудовувати окремо."
+      }
+    ]
+  },
   leftRotate: {
     title: "Квіз: лівий поворот",
     questions: [
@@ -180,6 +203,64 @@ export const quizDefinitions = {
         options: ["LL", "RR", "BST-видалення", "випадок листка"],
         correct: 1,
         why: "Після RightRotate(rightChild) ситуація стає RR і завершується LeftRotate."
+      }
+    ]
+  },
+  avlDelete: {
+    title: "Квіз: AVL Delete",
+    questions: [
+      {
+        text: "Яка головна різниця між BST delete та AVL delete?",
+        options: ["AVL delete не використовує видалення", "AVL delete = BST delete + підйом назад із балансуванням", "AVL delete завжди робить 2 повороти", "AVL delete не рахує height"],
+        correct: 1,
+        why: "Фізичне видалення те саме, але в AVL після цього треба перевіряти height/bf в предків."
+      },
+      {
+        text: "Після delete вузол має bf = -2, а правий син має bf = -1. Який case?",
+        options: ["LL", "LR", "RR", "RL"],
+        correct: 2,
+        why: "Праве піддерево важке, child bf <= 0, тому це RR і потрібен LeftRotate."
+      },
+      {
+        text: "Як визначають case після delete?",
+        options: ["За видаленим ключем", "За balance factor поточного вузла і його дитини", "За висотою root", "Випадково"],
+        correct: 1,
+        why: "Після delete напрямок визначають за bf вузла і bf дитини, а не за шляхом вставки."
+      }
+    ]
+  },
+  rbInsert: {
+    title: "Квіз: Red-Black Insert",
+    questions: [
+      {
+        text: "Який колір отримує новий вузол одразу після RB-вставки?",
+        options: ["Black", "Red", "Залежить від висоти", "Колір не задається"],
+        correct: 1,
+        why: "За стандартним RB insert новий вузол спочатку фарбуємо в red."
+      },
+      {
+        text: "Чому не можна залишати red parent + red child?",
+        options: ["Бо порушиться BST-порядок", "Бо порушується властивість RB: у червоного вузла діти мають бути чорними", "Бо root стане null", "Бо зникне successor"],
+        correct: 1,
+        why: "Це пряме порушення RB-властивості про два червоні підряд."
+      },
+      {
+        text: "Що робимо, якщо parent red і uncle теж red?",
+        options: ["Тільки rotation", "Recoloring: parent/uncle -> black, grandparent -> red, далі підіймаємось вище", "Видаляємо grandparent", "Нічого"],
+        correct: 1,
+        why: "Це класичний recoloring-case без негайного rotation."
+      },
+      {
+        text: "Що робимо, якщо uncle black/null?",
+        options: ["Лише recoloring", "Виконуємо rotations (LL/LR/RR/RL) + перефарбування", "Завжди RightRotate", "Завжди LeftRotate"],
+        correct: 1,
+        why: "Коли uncle чорний, fixup переходить до поворотів і корекції кольорів."
+      },
+      {
+        text: "Чому root у Red-Black Tree завжди black?",
+        options: ["Щоб дерево було повним", "Щоб виконувалась базова RB-властивість і стабілізувався fixup", "Щоб усі листки стали red", "Це лише для AVL"],
+        correct: 1,
+        why: "Одна з RB-властивостей: корінь має бути чорним."
       }
     ]
   }

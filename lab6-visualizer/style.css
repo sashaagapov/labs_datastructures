@@ -249,6 +249,18 @@ body.mode-defense #codePanel  { display: none; }
   filter: drop-shadow(0 8px 14px rgba(0,0,0,0.4));
 }
 
+.tree-node.rb-red .node-circle {
+  fill: #7f1d1d;
+  stroke: #f87171;
+  stroke-width: 2.8;
+}
+
+.tree-node.rb-black .node-circle {
+  fill: #111827;
+  stroke: #9ca3af;
+  stroke-width: 2.8;
+}
+
 /* Role-based node fills — applied via class on <g> */
 .tree-node.role-current   .node-circle { fill: var(--role-current);   stroke: var(--role-current-stroke);   stroke-width: 3; }
 .tree-node.role-parent    .node-circle { fill: #1e40af;               stroke: var(--role-parent-stroke);    stroke-width: 2.5; }

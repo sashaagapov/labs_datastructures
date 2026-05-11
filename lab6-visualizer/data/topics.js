@@ -24,6 +24,18 @@ export const topicDefinitions = [
     customType: "delete"
   },
   {
+    key: "bstTransplant",
+    navGroup: "BST",
+    name: "BST — Transplant",
+    shortName: "Transplant",
+    description: "Локальна заміна піддерева: вузол v займає місце вузла u.",
+    badge: "1 сценарій",
+    accent: "#3b82f6",
+    icon: "tree",
+    scenarioIds: ["transplant-basic"],
+    customType: "transplant"
+  },
+  {
     key: "leftRotate",
     navGroup: "Повороти",
     name: "Лівий поворот",
@@ -70,5 +82,29 @@ export const topicDefinitions = [
     icon: "balance",
     scenarioIds: ["avl-ll", "avl-rr", "avl-lr", "avl-rl"],
     customType: "avl"
+  },
+  {
+    key: "avlDelete",
+    navGroup: "AVL",
+    name: "AVL — Видалення вузла",
+    shortName: "Видалення вузла",
+    description: "BST-видалення + підйом назад із перевіркою bf та поворотом.",
+    badge: "1 сценарій",
+    accent: "#22c55e",
+    icon: "balance",
+    scenarioIds: ["avl-delete-demo"],
+    customType: "avlDelete"
+  },
+  {
+    key: "rbInsert",
+    navGroup: "Red-Black Tree",
+    name: "Red-Black Tree — Вставка",
+    shortName: "Вставка",
+    description: "Покрокова вставка 41, 38, 31, 12, 19, 8 з fixup, recoloring і rotation.",
+    badge: "1 сценарій",
+    accent: "#ef4444",
+    icon: "tree",
+    scenarioIds: ["rb-insert-sequence"],
+    customType: "rbInsert"
   }
 ];

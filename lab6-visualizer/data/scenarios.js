@@ -50,6 +50,14 @@ export const scenarioDefinitions = [
     codeKey: "bstDelete"
   },
   {
+    id: "transplant-basic",
+    title: "BST Transplant: заміна вузла 10 піддеревом 5",
+    group: "BST Transplant",
+    topicKey: "bstTransplant",
+    quizKey: "bstTransplant",
+    codeKey: "transplant"
+  },
+  {
     id: "avl-ll",
     title: "AVL-вставка LL: [30, 20, 10]",
     group: "AVL-вставка",
@@ -80,5 +88,21 @@ export const scenarioDefinitions = [
     topicKey: "avlInsert",
     quizKey: "avlRL",
     codeKey: "avlInsert"
+  },
+  {
+    id: "avl-delete-demo",
+    title: "AVL-видалення: delete 10 + rebalance (RR)",
+    group: "AVL-видалення",
+    topicKey: "avlDelete",
+    quizKey: "avlDelete",
+    codeKey: "avlDelete"
+  },
+  {
+    id: "rb-insert-sequence",
+    title: "Red-Black insert: 41, 38, 31, 12, 19, 8",
+    group: "Red-Black Tree",
+    topicKey: "rbInsert",
+    quizKey: "rbInsert",
+    codeKey: "rbInsert"
   }
 ];

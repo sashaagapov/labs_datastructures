@@ -1,7 +1,13 @@
 namespace agapovlab6;
 
+/// <summary>
+/// Клас Menu: містить частину логіки лабораторної роботи з деревами.
+/// </summary>
 public static partial class Menu
 {
+    /// <summary>
+    /// Метод RunBstMenu: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void RunBstMenu()
     {
         while (true)
@@ -68,6 +74,9 @@ public static partial class Menu
         }
     }
 
+    /// <summary>
+    /// Метод CreateBST: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void CreateBST()
     {
         Console.Write("Введіть кількість вузлів: ");
@@ -83,6 +92,9 @@ public static partial class Menu
         WaitForKey();
     }
 
+    /// <summary>
+    /// Метод ShowBST: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void ShowBST()
     {
         if (currentBST == null)
@@ -97,6 +109,9 @@ public static partial class Menu
         WaitForKey();
     }
 
+    /// <summary>
+    /// Метод ExecuteTask4: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void ExecuteTask4()
     {
         if (currentBST == null)
@@ -112,6 +127,9 @@ public static partial class Menu
         WaitForKey();
     }
 
+    /// <summary>
+    /// Метод ExecuteTask5: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void ExecuteTask5()
     {
         if (currentBST == null)
@@ -141,6 +159,9 @@ public static partial class Menu
         WaitForKey();
     }
 
+    /// <summary>
+    /// Метод ExecuteTask5Successor: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void ExecuteTask5Successor()
     {
         if (currentBST == null)
@@ -172,6 +193,9 @@ public static partial class Menu
         WaitForKey();
     }
 
+    /// <summary>
+    /// Метод ExecuteTask6: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void ExecuteTask6()
     {
         if (currentBST == null)
@@ -188,6 +212,9 @@ public static partial class Menu
         WaitForKey();
     }
 
+    /// <summary>
+    /// Метод ExecuteTask7: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void ExecuteTask7()
     {
         if (currentBST == null)
@@ -211,6 +238,9 @@ public static partial class Menu
         WaitForKey();
     }
 
+    /// <summary>
+    /// Метод ExecuteTask8: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void ExecuteTask8()
     {
         if (currentBST == null)
@@ -246,6 +276,9 @@ public static partial class Menu
         WaitForKey();
     }
 
+    /// <summary>
+    /// Метод ExecuteTask9: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void ExecuteTask9()
     {
         if (currentBST == null)

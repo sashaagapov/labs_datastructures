@@ -11,6 +11,9 @@ namespace agapovlab6
         /// Якщо поточний вузол є null — рекурсія зупиняється.
         /// </summary>
         /// <param name="node">Поточний вузол дерева</param>
+        /// <summary>
+        /// Метод PreOrder: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public void PreOrder(RecursiveTree node)
         {
             if (node == null)
@@ -29,6 +32,9 @@ namespace agapovlab6
         /// Якщо поточний вузол є null — рекурсія зупиняється.
         /// </summary>
         /// <param name="node">Поточний вузол дерева</param>
+        /// <summary>
+        /// Метод PostOrder: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public void PostOrder(RecursiveTree node)
         {
             if (node == null)

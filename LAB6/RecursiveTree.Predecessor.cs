@@ -13,6 +13,9 @@ namespace agapovlab6
         /// <param name="value">Значення для якого шукаємо predecessor</param>
         /// <param name="candidate">Кандидат на predecessor — останній вузол звідки йшли вправо</param>
         /// <returns>Вузол predecessor або null якщо predecessor не існує</returns>
+        /// <summary>
+        /// Метод TreePredecessor: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public static RecursiveTree TreePredecessor(RecursiveTree node, int value, RecursiveTree candidate = null)
         {
             // Якщо дійшли до null — повертаємо кандидата

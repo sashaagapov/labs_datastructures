@@ -11,6 +11,9 @@ namespace agapovlab6
         /// Порядок обходу: Ліво - Корінь - Право.
         /// </summary>
         /// <param name="node">Корінь дерева з якого починається обхід</param>
+        /// <summary>
+        /// Метод IterativeInOrder: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public void IterativeInOrder(RecursiveTree node)
         {
             if (node == null)// Якщо дерево порожнє, просто повертаємося

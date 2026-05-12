@@ -11,6 +11,9 @@ namespace agapovlab6
         /// <param name="node">Поточний вузол дерева</param>
         /// <param name="value">Значення яке потрібно знайти</param>
         /// <returns>Знайдений вузол або null якщо такого значення немає</returns>
+        /// <summary>
+        /// Метод Search: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public static RecursiveTree? Search(RecursiveTree? node, int value) // Шукаємо вузол з потрібним значенням у BST
         {
             if (node == null) // Якщо дійшли до порожнього місця, такого значення в дереві немає

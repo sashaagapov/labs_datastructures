@@ -4,11 +4,15 @@ namespace agapovlab6
     /// Клас для управління меню програми.
     /// Зберігає стан двох дерев — звичайного та BST.
     /// </summary>
+    /// <summary>
+    /// Клас Menu: містить частину логіки лабораторної роботи з деревами.
+    /// </summary>
     public static partial class Menu
     {
         private static RecursiveTree currentTree = null;
         private static RecursiveTree currentBST = null;
         private static AvlTree? currentAVL;
+        private static RedBlackTree? currentRedBlackTree;
 
         /// <summary>
         /// Запускає головне меню програми та обробляє вибір користувача.
@@ -22,6 +26,7 @@ namespace agapovlab6
                 Console.WriteLine($"Звичайне дерево:   {(currentTree != null ? "створено" : "не створено")}");
                 Console.WriteLine($"BST:               {(currentBST != null ? "створено" : "не створено")}");
                 Console.WriteLine($"AVL:               {(currentAVL != null ? "створено" : "не створено")}");
+                Console.WriteLine($"Red-Black Tree:    {(currentRedBlackTree != null ? "створено" : "не створено")}");
                 Console.WriteLine("==============================================================");
                 Console.WriteLine("1. Звичайне бінарне дерево");
                 Console.WriteLine("2. Бінарне дерево пошуку BST");
@@ -46,8 +51,7 @@ namespace agapovlab6
                             RunAvlMenu();
                             break;
                         case 4:
-                            Console.WriteLine("Red-Black Tree ще не реалізовано.");
-                            WaitForKey();
+                            RunRedBlackMenu();
                             break;
                         case 0:
                             isRunning = false;

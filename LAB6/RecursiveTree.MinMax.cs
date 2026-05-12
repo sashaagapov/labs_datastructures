@@ -12,6 +12,9 @@ namespace agapovlab6
         /// </summary>
         /// <param name="node">Поточний вузол дерева</param>
         /// <returns>Вузол з мінімальним значенням</returns>
+        /// <summary>
+        /// Метод TreeMinimum: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public static RecursiveTree TreeMinimum(RecursiveTree node)
         {
             if (node.Left == null)
@@ -29,6 +32,9 @@ namespace agapovlab6
         /// </summary>
         /// <param name="node">Поточний вузол дерева</param>
         /// <returns>Вузол з максимальним значенням</returns>
+        /// <summary>
+        /// Метод TreeMaximum: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public static RecursiveTree TreeMaximum(RecursiveTree node)
         {
             if (node.Right == null)

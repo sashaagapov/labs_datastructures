@@ -4,6 +4,9 @@ namespace agapovlab6
     /// Базовий клас бінарного дерева.
     /// Містить поля, конструктор, властивості та методи встановлення нащадків.
     /// </summary>
+    /// <summary>
+    /// Клас RecursiveTree: містить частину логіки лабораторної роботи з деревами.
+    /// </summary>
     public partial class RecursiveTree
     {
         private int nodeValue = 0;

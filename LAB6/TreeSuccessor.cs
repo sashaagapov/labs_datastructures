@@ -13,6 +13,9 @@ namespace agapovlab6
         /// <param name="value">Значення для якого шукаємо successor</param>
         /// <param name="candidate">Кандидат на successor — останній вузол звідки йшли вліво</param>
         /// <returns>Вузол successor або null якщо successor не існує</returns>
+        /// <summary>
+        /// Метод TreeSuccessor: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public static RecursiveTree? TreeSuccessor(RecursiveTree? node, int value, RecursiveTree? candidate = null) // Шукаємо наступний більший вузол
         {
             if (node == null) // Дерево закінчилось, тому повертаємо найкращий знайдений кандидат

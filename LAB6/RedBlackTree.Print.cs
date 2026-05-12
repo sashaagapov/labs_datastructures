@@ -1,31 +1,35 @@
 namespace agapovlab6;
 
 /// <summary>
-/// Клас AvlTree: містить частину логіки лабораторної роботи з деревами.
+/// Клас RedBlackTree: містить частину логіки лабораторної роботи з деревами.
 /// </summary>
-public partial class AvlTree
+public partial class RedBlackTree
 {
     /// <summary>
     /// Метод PrintTree: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
     /// </summary>
     public void PrintTree()
     {
+        if (Root == null)
+        {
+            Console.WriteLine("Red-Black Tree порожнє.");
+            return;
+        }
+
         PrintTree(Root, "", false);
     }
 
     /// <summary>
     /// Метод PrintTree: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
     /// </summary>
-    private void PrintTree(AvlNode? node, string indent, bool isLeft)
+    private static void PrintTree(RedBlackNode? node, string indent, bool isLeft)
     {
         if (node == null)
         {
             return;
         }
 
-        int balance = GetBalance(node);
-
-        Console.WriteLine($"{indent}{(isLeft ? "├── " : "└── ")}{node.Value} (h={node.Height}, bf={balance})");
+        Console.WriteLine($"{indent}{(isLeft ? "├── " : "└── ")}{node.Value} ({node.Color})");
 
         string childIndent = indent + (isLeft ? "│   " : "    ");
 

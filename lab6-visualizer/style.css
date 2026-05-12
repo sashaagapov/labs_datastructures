@@ -33,6 +33,14 @@
   --role-current-stroke: #fde68a;
   --role-parent: #3b82f6;
   --role-parent-stroke: #93c5fd;
+  --role-grandparent: #f97316;
+  --role-grandparent-stroke: #fdba74;
+  --role-uncle: #14b8a6;
+  --role-uncle-stroke: #5eead4;
+  --role-conflict: #ef4444;
+  --role-conflict-stroke: #fca5a5;
+  --role-recolored: #a3e635;
+  --role-recolored-stroke: #d9f99d;
   --role-successor: #a78bfa;
   --role-successor-stroke: #c4b5fd;
   --role-b: #22d3ee;
@@ -222,6 +230,10 @@ body.mode-defense #codePanel  { display: none; }
 
 .ld-current   { background: var(--role-current); border-color: var(--role-current-stroke); }
 .ld-parent    { background: var(--role-parent); border-color: var(--role-parent-stroke); }
+.ld-grandparent { background: var(--role-grandparent); border-color: var(--role-grandparent-stroke); }
+.ld-uncle { background: var(--role-uncle); border-color: var(--role-uncle-stroke); }
+.ld-conflict { background: var(--role-conflict); border-color: var(--role-conflict-stroke); }
+.ld-recolored { background: var(--role-recolored); border-color: var(--role-recolored-stroke); }
 .ld-successor { background: var(--role-successor); border-color: var(--role-successor-stroke); }
 .ld-b-subtree { background: var(--role-b); border-color: var(--role-b-stroke); }
 .ld-rotation-pivot { background: var(--role-pivot); border-color: var(--role-pivot-stroke); }
@@ -264,6 +276,10 @@ body.mode-defense #codePanel  { display: none; }
 /* Role-based node fills — applied via class on <g> */
 .tree-node.role-current   .node-circle { fill: var(--role-current);   stroke: var(--role-current-stroke);   stroke-width: 3; }
 .tree-node.role-parent    .node-circle { fill: #1e40af;               stroke: var(--role-parent-stroke);    stroke-width: 2.5; }
+.tree-node.role-grandparent .node-circle { fill: #7c2d12;             stroke: var(--role-grandparent-stroke); stroke-width: 3; }
+.tree-node.role-uncle .node-circle { fill: #134e4a;                   stroke: var(--role-uncle-stroke);      stroke-width: 3; }
+.tree-node.role-conflict .node-circle { fill: #7f1d1d;                stroke: var(--role-conflict-stroke);   stroke-width: 3.3; }
+.tree-node.role-recolored .node-circle { fill: #365314;               stroke: var(--role-recolored-stroke);  stroke-width: 3; }
 .tree-node.role-successor .node-circle { fill: #4c1d95;               stroke: var(--role-successor-stroke); stroke-width: 3; }
 .tree-node.role-b-subtree .node-circle { fill: #0e7490;               stroke: var(--role-b-stroke);         stroke-width: 3; }
 .tree-node.role-imbalanced .node-circle { fill: #7f1d1d;              stroke: var(--role-imbalanced-stroke);stroke-width: 3; }
@@ -299,10 +315,11 @@ body.mode-defense #codePanel  { display: none; }
 }
 
 .code-line {
-  display: grid; grid-template-columns: 42px minmax(0, 1fr);
+  display: grid; grid-template-columns: 42px auto;
   gap: 12px; padding: 2px 14px 2px 0;
   border-left: 4px solid transparent;
-  white-space: pre-wrap;
+  white-space: pre;
+  min-width: max-content;
 }
 
 .code-line:nth-child(odd) { background: rgba(255,255,255,0.012); }

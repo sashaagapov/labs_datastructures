@@ -4,6 +4,9 @@ namespace agapovlab6
     /// Завдання: лівий та правий повороти вузлів у BST.
     /// Поворот змінює локальну структуру дерева, але зберігає порядок елементів.
     /// </summary>
+    /// <summary>
+    /// Клас RecursiveTree: містить частину логіки лабораторної роботи з деревами.
+    /// </summary>
     public partial class RecursiveTree
     {
         /// <summary>
@@ -13,6 +16,9 @@ namespace agapovlab6
         /// <param name="root">Поточний корінь дерева</param>
         /// <param name="x">Вузол навколо якого виконується поворот</param>
         /// <returns>Корінь дерева після повороту</returns>
+        /// <summary>
+        /// Метод LeftRotate: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public static RecursiveTree? LeftRotate(RecursiveTree? root, RecursiveTree x)
         {
             RecursiveTree? y = x.Right; // y буде новою вершиною цього піддерева
@@ -50,6 +56,9 @@ namespace agapovlab6
         /// <param name="root">Поточний корінь дерева</param>
         /// <param name="y">Вузол навколо якого виконується поворот</param>
         /// <returns>Корінь дерева після повороту</returns>
+        /// <summary>
+        /// Метод RightRotate: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public static RecursiveTree? RightRotate(RecursiveTree? root, RecursiveTree y)
         {
             RecursiveTree? x = y.Left; // x буде новою вершиною цього піддерева

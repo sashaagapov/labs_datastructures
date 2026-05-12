@@ -13,6 +13,9 @@ namespace agapovlab6
         /// <param name="u">Вузол який потрібно замінити</param>
         /// <param name="v">Вузол який стає на місце u</param>
         /// <returns>Корінь дерева після заміни</returns>
+        /// <summary>
+        /// Метод Transplant: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public static RecursiveTree? Transplant(RecursiveTree? root, RecursiveTree u, RecursiveTree? v) // Замінюємо піддерево u на піддерево v
         {
             if (u.Parent == null) // Якщо u не має батька, значить це корінь дерева

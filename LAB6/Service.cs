@@ -26,6 +26,9 @@ namespace agapovlab6
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
+        /// <summary>
+        /// Метод BuildTree: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public static RecursiveTree BuildTree(int n)
         {
             RecursiveTree[] recursiveTrees = new RecursiveTree[n];
@@ -76,6 +79,9 @@ namespace agapovlab6
         /// </summary>
         /// <param name="n">Кількість вузлів які потрібно вставити</param>
         /// <returns>Корінь побудованого BST</returns>
+        /// <summary>
+        /// Метод BuildBST: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public static RecursiveTree BuildBST(int n)
         {
             RecursiveTree root = null;  // дерево порожнє на початку
@@ -103,6 +109,9 @@ namespace agapovlab6
         /// <param name="node">Поточний вузол</param>
         /// <param name="indent">Відступ для поточного рівня</param>
         /// <param name="isLeft">Чи є поточний вузол лівим нащадком</param>
+        /// <summary>
+        /// Метод PrintTree: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public static void PrintTree(RecursiveTree node, string indent, bool isLeft)
         {
             if (node == null)
@@ -125,6 +134,9 @@ namespace agapovlab6
         /// </summary>
         /// <param name="n">Кількість вузлів, які потрібно вставити</param>
         /// <returns>Побудоване AVL-дерево</returns>
+        /// <summary>
+        /// Метод BuildAVL: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public static AvlTree BuildAVL(int n)
         {
             AvlTree tree = new AvlTree();

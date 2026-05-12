@@ -98,10 +98,15 @@ export const defenseHints = {
   `,
   "rbInsert": `
     <ul>
-      <li>Red-Black insert спочатку вставляє вузол як у BST, фарбує його в red, а потім через recoloring і rotations відновлює властивості дерева.</li>
-      <li>Ключова перевірка fixup: parent, grandparent і uncle.</li>
-      <li>Якщо uncle red — робимо recoloring; якщо uncle black/null — робимо rotations + перефарбування.</li>
-      <li>Після кожної вставки корінь обов’язково має бути black.</li>
+      <li><strong>Red-Black Tree = BST + colors:</strong> порядок ключів як у BST, баланс підтримується кольорами.</li>
+      <li>Новий вузол вставляється як у BST і спочатку фарбується в <strong>red</strong>.</li>
+      <li>Головне правило: <strong>red-вузол не може мати red-батька</strong>.</li>
+      <li>Якщо parent black — fixup не потрібен; якщо parent red — дивимось на uncle (брата parent).</li>
+      <li>Uncle red → <strong>recoloring</strong>: parent/uncle стають black, grandparent стає red, далі піднімаємось вище.</li>
+      <li>Uncle black або null (null вважаємо black) → <strong>rotations + recoloring</strong> (LL/RR або LR/RL).</li>
+      <li>В кінці завжди робимо <strong>Root.Color = Black</strong>.</li>
+      <li>Перевага над звичайним BST: дерево не вироджується в список, операції залишаються ~O(log n).</li>
+      <li>Різниця з AVL: AVL жорстко балансується висотами, RB — м’якше кольорами, тому зазвичай має менше поворотів.</li>
     </ul>
   `,
   "default": `

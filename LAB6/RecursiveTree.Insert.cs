@@ -15,6 +15,9 @@ namespace agapovlab6
         /// <param name="node">Поточний вузол дерева</param>
         /// <param name="value">Значення яке потрібно вставити</param>
         /// <returns>Корінь дерева після вставки</returns>
+        /// <summary>
+        /// Метод TreeInsert: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public static RecursiveTree TreeInsert(RecursiveTree node, int value)
         {
             if (node == null)// Якщо дійшли до null — створюємо новий вузол з цим значенням

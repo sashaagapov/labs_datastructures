@@ -184,5 +184,39 @@ export const advancedLessons = [
         text: "LL/RR — single rotation, LR/RL — double rotation. Single rotation достатньо, коли напрямки дисбалансу збігаються. Double rotation перетворює зигзаг на лінію, і потім використовує single rotation."
       }
     ]
+  },
+  {
+    id: "rb-insert-core",
+    title: "Red-Black Tree: Insert без магії",
+    difficulty: "Advanced",
+    goal: "Побачити RB insert як зрозумілу послідовність: BST-вставка, кольори, uncle-case, rotations і фінальний root black.",
+    sections: [
+      {
+        type: "intuition",
+        title: "Суть Red-Black Tree",
+        text: "Red-Black Tree — це BST, де кожен вузол має колір red або black. Ми не тримаємо ідеальний баланс як у AVL, але гарантуємо, що дерево не вироджується в довгий список, тому пошук/вставка/видалення залишаються приблизно O(log n)."
+      },
+      {
+        type: "trace",
+        title: "Правила кольорів і ролі вузлів",
+        text: "Головне правило: red-вузол не може мати red-батька. У fixup ми дивимось на node (новий вузол), parent, grandparent і uncle (брата parent). Новий вузол спочатку red, бо так простіше відновити баланс локально, не ламаючи black-height всього дерева."
+      },
+      {
+        type: "trace",
+        title: "Uncle red vs uncle black/null",
+        text: "Якщо uncle red — робимо recoloring: parent і uncle стають black, grandparent стає red, і перевірка підіймається вище. Якщо uncle black або null (null вважаємо black) — переходимо до rotations: LL/RR це прямі випадки, LR/RL це зигзаги з двома поворотами."
+      },
+      {
+        type: "visualizer",
+        title: "Подивитись RB Insert покроково",
+        text: "Відкрийте сценарій RB insert і пройдіть кроки 41, 38, 31, 12, 19, 8 з ролями parent/grandparent/uncle та поясненнями why.",
+        scenarioId: "rb-insert-sequence"
+      },
+      {
+        type: "defense",
+        title: "AVL vs Red-Black (коротко)",
+        text: "AVL балансує висоти жорстко, тому частіше робить повороти, але має меншу висоту. RB балансує м'якше через кольори та зазвичай робить менше rotations у вставках/видаленнях, залишаючись логарифмічним."
+      }
+    ]
   }
 ];

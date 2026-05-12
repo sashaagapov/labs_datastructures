@@ -12,6 +12,9 @@ namespace agapovlab6
         /// <param name="root">Корінь дерева</param>
         /// <param name="value">Значення вузла який потрібно видалити</param>
         /// <returns>Корінь дерева після видалення</returns>
+        /// <summary>
+        /// Метод TreeDelete: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+        /// </summary>
         public static RecursiveTree? TreeDelete(RecursiveTree? root, int value) // Видаляємо вузол з BST за його значенням
         {
             RecursiveTree? z = Search(root, value); // Спочатку знаходимо вузол, який треба видалити

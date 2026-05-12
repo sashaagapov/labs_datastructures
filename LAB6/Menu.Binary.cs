@@ -1,7 +1,13 @@
 namespace agapovlab6;
 
+/// <summary>
+/// Клас Menu: містить частину логіки лабораторної роботи з деревами.
+/// </summary>
 public static partial class Menu
 {
+    /// <summary>
+    /// Метод RunBinaryTreeMenu: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void RunBinaryTreeMenu()
     {
         while (true)
@@ -44,6 +50,9 @@ public static partial class Menu
         }
     }
 
+    /// <summary>
+    /// Метод CreateTree: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void CreateTree()
     {
         Console.Write("Введіть кількість вузлів: ");
@@ -59,6 +68,9 @@ public static partial class Menu
         WaitForKey();
     }
 
+    /// <summary>
+    /// Метод ShowTree: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void ShowTree()
     {
         if (currentTree == null)
@@ -73,6 +85,9 @@ public static partial class Menu
         WaitForKey();
     }
 
+    /// <summary>
+    /// Метод ExecuteTask2: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void ExecuteTask2()
     {
         if (currentTree == null)
@@ -93,6 +108,9 @@ public static partial class Menu
         WaitForKey();
     }
 
+    /// <summary>
+    /// Метод ExecuteTask3: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void ExecuteTask3()
     {
         if (currentTree == null)

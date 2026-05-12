@@ -358,7 +358,12 @@ function normalizeRoleName(role) {
   const normalized = String(role ?? "").trim().toLowerCase();
   const map = {
     current: "role-current",
+    node: "role-current",
     parent: "role-parent",
+    grandparent: "role-grandparent",
+    uncle: "role-uncle",
+    conflict: "role-conflict",
+    recolored: "role-recolored",
     successor: "role-successor",
     "b-subtree": "role-b-subtree",
     bsubtree: "role-b-subtree",
@@ -2313,6 +2318,11 @@ function generateRbInsertScenario() {
   const tree = { root: null, nodes: new Map() };
   const steps = [];
   const sequence = [41, 38, 31, 12, 19, 8];
+  const explain = (short, medium, deep) => ({
+    explanationShort: short,
+    explanationMedium: medium,
+    explanationDeep: deep
+  });
 
   addRbStep(steps, tree, {
     codeLine: 0,
@@ -2320,53 +2330,73 @@ function generateRbInsertScenario() {
       sequence: `[${sequence.join(", ")}]`,
       root: null
     },
-    explanation: "Починаємо Red-Black insert demo для ключів 41, 38, 31, 12, 19, 8. На кожній вставці: BST-крок, початковий red, fixup через uncle/parent/grandparent, і перевірка root=black.",
-    invariant: "RB старт: порожнє дерево коректне."
+    ...explain(
+      "Починаємо RB insert demo для послідовності 41, 38, 31, 12, 19, 8.",
+      "Працюємо покроково: спочатку вставка як у BST, далі новий вузол стає red, потім InsertFixup перевіряє parent/grandparent/uncle, і в кінці root примусово black.",
+      "Такий порядок потрібен, бо Red-Black Tree — це BST із кольоровими інваріантами: структуру дає BST-вставка, а кольоровий баланс повертають recoloring і rotations."
+    ),
+    invariant: "RB старт: порожнє дерево валідне."
   });
 
   let z = insertPlain(tree, 41);
   rbSetColor(z, "red");
   addRbStep(steps, tree, {
     activeNodeIds: [z.id],
-    nodeRoles: { [z.id]: "inserted" },
-    codeLine: 3,
+    nodeRoles: { [z.id]: ["node", "recolored"] },
+    codeLine: 2,
     variables: { insert: 41, "new color": "red", parent: valueOf(z.parent), root: valueOf(tree.root) },
-    explanation: "Вставка 41: додаємо вузол як у BST. Новий вузол спочатку завжди red.",
-    invariant: "Тимчасово root може бути red до фінального кроку fixup."
+    ...explain(
+      "Вставляємо 41 як у BST і одразу фарбуємо новий вузол у red.",
+      "Перший крок RB insert не ламає BST-логіку: шукаємо позицію за ключем і вставляємо листок, після чого newNode.Color = Red.",
+      "Новий вузол робимо red, а не black, щоб не змінювати black-height на шляху від кореня: так локально можна порушити тільки правило red-parent, яке виправляється дешевше за глобальне вирівнювання."
+    ),
+    invariant: "Тимчасово корінь може бути red до завершення fixup."
   });
 
   rbSetColor(tree.root, "black");
   addRbStep(steps, tree, {
     activeNodeIds: [tree.root.id],
     nodeRoles: { [tree.root.id]: "root" },
-    codeLine: 42,
+    codeLine: 4,
     variables: { root: valueOf(tree.root), "root color": rbColorOf(tree.root) },
-    explanation: "41 став коренем, тому одразу фарбуємо root у black. Властивість RB: корінь завжди чорний.",
-    invariant: "RB ✓ root = black"
+    ...explain(
+      "Після fixup корінь обов'язково стає black.",
+      "Вузол 41 зараз корінь, тому виконуємо Root.Color = Black.",
+      "Останній крок InsertFixup завжди примусовий: навіть якщо через recoloring корінь тимчасово став red, ця команда повертає ключову властивість RB-дерева."
+    ),
+    invariant: "RB ✓ root = black."
   });
 
   z = insertPlain(tree, 38);
   rbSetColor(z, "red");
   addRbStep(steps, tree, {
     activeNodeIds: [z.id, z.parent.id],
-    nodeRoles: { [z.id]: "inserted", [z.parent.id]: "parent" },
-    codeLine: 3,
+    nodeRoles: { [z.id]: "node", [z.parent.id]: "parent" },
+    codeLine: 2,
     variables: {
       insert: 38,
       parent: `${z.parent.value} (${rbColorOf(z.parent)})`,
       grandparent: null,
       uncle: "null (black)"
     },
-    explanation: "Вставка 38: вузол став лівим сином 41 і отримав red. Parent = 41 black, тому порушення немає.",
-    invariant: "RB ✓ red-вузол має black-батька, fixup не потрібен."
+    ...explain(
+      "38 вставляється як у BST, стає red, а його parent=41 уже black.",
+      "Після BST-вставки вузол 38 стоїть ліворуч від 41; новий вузол red, але red-red конфлікту немає, бо батько чорний.",
+      "Коли parent black, жоден RB-інваріант не ламається: black-height не змінився, а правило 'red node не має red parent' вже виконується, тому fixup фактично не потрібен."
+    ),
+    invariant: "RB ✓ red-вузол має black-батька."
   });
 
   addRbStep(steps, tree, {
     activeNodeIds: [tree.root.id],
     nodeRoles: { [tree.root.id]: "root" },
-    codeLine: 5,
+    codeLine: 7,
     variables: { root: `${tree.root.value} (${rbColorOf(tree.root)})`, status: "fixup skipped" },
-    explanation: "Fixup для 38 пропускаємо: while(parent is red) не входить, бо parent чорний.",
+    ...explain(
+      "Цикл fixup не запускається, бо parent не red.",
+      "Умова while для InsertFixup: працюємо лише коли parent червоний; для 38 це false, тому алгоритм одразу завершується.",
+      "Такий early-exit зберігає швидкість: RB insert робить додаткову роботу тільки там, де реально є red-red конфлікт."
+    ),
     invariant: "RB ✓ дерево валідне після вставки 38."
   });
 
@@ -2377,27 +2407,35 @@ function generateRbInsertScenario() {
   let u = g.right;
   addRbStep(steps, tree, {
     activeNodeIds: [z.id, p.id, g.id],
-    nodeRoles: { [z.id]: "inserted", [p.id]: "parent", [g.id]: "rotation-pivot", ...(u ? { [u.id]: "successor" } : {}) },
-    codeLine: 5,
+    nodeRoles: { [z.id]: ["node", "conflict"], [p.id]: ["parent", "conflict"], [g.id]: "grandparent", ...(u ? { [u.id]: "uncle" } : {}) },
+    codeLine: 10,
     variables: {
       insert: 31,
       parent: `${p.value} (${rbColorOf(p)})`,
       grandparent: `${g.value} (${rbColorOf(g)})`,
       uncle: u ? `${u.value} (${rbColorOf(u)})` : "null (black)"
     },
-    explanation: "Вставка 31: маємо порушення red-parent + red-child (31 і 38). Uncle = null/black, отже це гілка з rotation.",
+    ...explain(
+      "Для 31 з'являється red-red conflict: node=31 red і parent=38 red.",
+      "Тут чітко виділяємо ролі: node — новий вузол, parent — його батько, grandparent — батько parent, uncle — брат parent відносно grandparent; uncle відсутній, тому в RB-логіці він вважається black.",
+      "Null-uncle трактуємо як black, бо порожні NIL-листки концептуально чорні; отже це не recoloring-case, а випадок із rotations."
+    ),
     invariant: "⚠ RB порушення: два червоні підряд."
   });
 
   addRbStep(steps, tree, {
     activeNodeIds: [z.id, p.id, g.id],
-    nodeRoles: { [z.id]: "inserted", [p.id]: "parent", [g.id]: "rotation-pivot" },
-    codeLine: 18,
+    nodeRoles: { [z.id]: "node", [p.id]: "parent", [g.id]: "grandparent" },
+    codeLine: 16,
     variables: {
-      case: "left-left",
+      case: "LL (прямий випадок)",
       action: "RightRotate(41) + recolor"
     },
-    explanation: "Для 31 це left-left case: parent є лівою дитиною grandparent, а новий вузол також у лівій гілці. Робимо RightRotate(41)."
+    ...explain(
+      "Це LL-випадок: parent ліворуч від grandparent і node ліворуч від parent.",
+      "Оскільки uncle black/null, переходимо до rotation-гілки; LL і RR є прямими випадками, де достатньо одного повороту навколо grandparent.",
+      "Для LL один RightRotate вирівнює локальну 'лінію' й піднімає середній ключ вгору, зберігаючи BST-порядок."
+    )
   });
 
   rightRotateBasic(tree, g);
@@ -2406,15 +2444,19 @@ function generateRbInsertScenario() {
   rbSetColor(tree.root, "black");
   addRbStep(steps, tree, {
     activeNodeIds: [find(tree, 38).id, find(tree, 41).id],
-    nodeRoles: { [find(tree, 38).id]: "root", [find(tree, 41).id]: "current" },
-    codeLine: 22,
+    nodeRoles: { [find(tree, 38).id]: ["root", "recolored"], [find(tree, 41).id]: ["grandparent", "recolored"] },
+    codeLine: 23,
     variables: {
       rotation: "RightRotate(41)",
       recolor: "38 -> black, 41 -> red",
       root: `${tree.root.value} (${rbColorOf(tree.root)})`
     },
-    explanation: "Після повороту 38 піднімається вгору. Перефарбовуємо: 38 black, 41 red. Root лишається black.",
-    invariant: "RB ✓ порушення усунуте."
+    ...explain(
+      "Після повороту верх піддерева стає black, а старий grandparent стає red.",
+      "RightRotate(41) підняв 38 вище, потім recoloring робить 38 чорним і 41 червоним, щоб прибрати red-red локально.",
+      "Нова верхівка піддерева стає black, бо саме вона з'єднує обидві гілки після повороту; старий grandparent стає red, щоб зберегти однакову кількість black-вузлів на шляхах."
+    ),
+    invariant: "RB ✓ конфлікт усунуто."
   });
 
   z = insertPlain(tree, 12);
@@ -2424,8 +2466,8 @@ function generateRbInsertScenario() {
   u = g.right;
   addRbStep(steps, tree, {
     activeNodeIds: [z.id, p.id, g.id, u.id],
-    nodeRoles: { [z.id]: "inserted", [p.id]: "parent", [g.id]: "rotation-pivot", [u.id]: "successor" },
-    codeLine: 12,
+    nodeRoles: { [z.id]: ["node", "conflict"], [p.id]: ["parent", "conflict"], [g.id]: "grandparent", [u.id]: "uncle" },
+    codeLine: 11,
     variables: {
       insert: 12,
       parent: `${p.value} (${rbColorOf(p)})`,
@@ -2433,8 +2475,12 @@ function generateRbInsertScenario() {
       uncle: `${u.value} (${rbColorOf(u)})`,
       case: "parent red + uncle red"
     },
-    explanation: "Вставка 12: parent=31 red і uncle=41 red. Це recoloring-case без rotation.",
-    invariant: "⚠ Локальне порушення перед fixup."
+    ...explain(
+      "Для 12 маємо parent red і uncle red — це recoloring-case.",
+      "Node=12 red має red parent=31, але uncle=41 теж red, тому fixup обирає перефарбування без rotations.",
+      "Коли uncle red, геометрія піддерева не проблема: порушення чисто кольорове, тож rotation не потрібен."
+    ),
+    invariant: "⚠ Локальний red-red конфлікт перед fixup."
   });
 
   rbSetColor(p, "black");
@@ -2442,24 +2488,32 @@ function generateRbInsertScenario() {
   rbSetColor(g, "red");
   addRbStep(steps, tree, {
     activeNodeIds: [p.id, g.id, u.id],
-    nodeRoles: { [p.id]: "parent", [g.id]: "rotation-pivot", [u.id]: "successor" },
+    nodeRoles: { [p.id]: ["parent", "recolored"], [u.id]: ["uncle", "recolored"], [g.id]: ["grandparent", "recolored"] },
     codeLine: 14,
     variables: {
       recolor: `${p.value}->black, ${u.value}->black, ${g.value}->red`,
       next: "перевіряємо вище"
     },
-    explanation: "Recoloring: parent і uncle стають black, grandparent стає red. Далі fixup продовжується вище від grandparent.",
-    invariant: "Після recoloring перевіряємо правило для предка."
+    ...explain(
+      "Recoloring: parent і uncle стають black, grandparent стає red.",
+      "Цей крок прибирає локальний red-red біля node: тепер обидві гілки під grandparent мають чорні вершини, а сам grandparent тимчасово червоний.",
+      "Grandparent стає red, щоб не збільшити black-height цієї локальної частини; через це потенційний конфлікт може піднятися вище, тому node = grandparent і цикл триває."
+    ),
+    invariant: "Після recoloring перевірка рухається вгору."
   });
 
   rbSetColor(tree.root, "black");
   addRbStep(steps, tree, {
     activeNodeIds: [tree.root.id],
     nodeRoles: { [tree.root.id]: "root" },
-    codeLine: 42,
+    codeLine: 4,
     variables: { root: `${tree.root.value} (${rbColorOf(tree.root)})` },
-    explanation: "Повертаємо root у black. Для цього кроку це вузол 38.",
-    invariant: "RB ✓ root = black"
+    ...explain(
+      "Після підйому fixup знову гарантуємо root black.",
+      "Після recoloring корінь потенційно міг змінити колір, тому виконується фінальна нормалізація Root.Color = Black.",
+      "Це обов'язковий запобіжник незалежно від гілки fixup: RB-правило для кореня не має винятків."
+    ),
+    invariant: "RB ✓ root = black."
   });
 
   z = insertPlain(tree, 19);
@@ -2469,8 +2523,8 @@ function generateRbInsertScenario() {
   u = g.right;
   addRbStep(steps, tree, {
     activeNodeIds: [z.id, p.id, g.id],
-    nodeRoles: { [z.id]: "inserted", [p.id]: "parent", [g.id]: "rotation-pivot", ...(u ? { [u.id]: "successor" } : {}) },
-    codeLine: 18,
+    nodeRoles: { [z.id]: ["node", "conflict"], [p.id]: ["parent", "conflict"], [g.id]: "grandparent", ...(u ? { [u.id]: "uncle" } : {}) },
+    codeLine: 16,
     variables: {
       insert: 19,
       parent: `${p.value} (${rbColorOf(p)})`,
@@ -2478,25 +2532,33 @@ function generateRbInsertScenario() {
       uncle: u ? `${u.value} (${rbColorOf(u)})` : "null (black)",
       case: "left-right"
     },
-    explanation: "Вставка 19: parent=12 red, uncle=null/black. Це left-right case: одним RightRotate(31) одразу не виправиться.",
-    invariant: "⚠ Потрібна подвійна ротація (LR-логіка для RB fixup)."
+    ...explain(
+      "Для 19 uncle black/null, тому йдемо в rotation-гілку; це LR-зигзаг.",
+      "Node=19 праворуч від red parent=12, а parent ліворуч від grandparent=31, отже маємо LR (зигзаг), не прямий LL.",
+      "LR/RL потребують два повороти: перший перетворює зигзаг у пряму форму, другий вже стабілізує піддерево."
+    ),
+    invariant: "⚠ Потрібна подвійна ротація (LR)."
   });
 
   leftRotateBasic(tree, p);
   addRbStep(steps, tree, {
     activeNodeIds: [find(tree, 12).id, find(tree, 19).id, find(tree, 31).id],
     nodeRoles: {
-      [find(tree, 19).id]: "current",
+      [find(tree, 19).id]: "node",
       [find(tree, 12).id]: "parent",
-      [find(tree, 31).id]: "rotation-pivot"
+      [find(tree, 31).id]: "grandparent"
     },
-    codeLine: 20,
+    codeLine: 17,
     variables: {
       step: "1/2",
       rotation: "LeftRotate(12)",
       effect: "перетворюємо на left-left відносно 31"
     },
-    explanation: "Крок 1 для 19: LeftRotate(12), щоб перетворити конфігурацію на left-left відносно grandparent.",
+    ...explain(
+      "Перший поворот для LR: LeftRotate(parent=12).",
+      "Цим поворотом переносимо node=19 вище за 12 і перетворюємо LR-конфігурацію на прямий LL-випадок відносно grandparent=31.",
+      "Без цього кроку один поворот навколо grandparent не прибере red-red правильно: зигзаг спочатку треба 'розпрямити'."
+    ),
     invariant: "Підготовка до другого повороту."
   });
 
@@ -2506,15 +2568,19 @@ function generateRbInsertScenario() {
   rbSetColor(tree.root, "black");
   addRbStep(steps, tree, {
     activeNodeIds: [find(tree, 19).id, find(tree, 31).id],
-    nodeRoles: { [find(tree, 19).id]: "current", [find(tree, 31).id]: "rotation-pivot" },
-    codeLine: 22,
+    nodeRoles: { [find(tree, 19).id]: ["node", "recolored"], [find(tree, 31).id]: ["grandparent", "recolored"] },
+    codeLine: 23,
     variables: {
       step: "2/2",
       rotation: "RightRotate(31)",
       recolor: "19 -> black, 31 -> red",
       root: `${tree.root.value} (${rbColorOf(tree.root)})`
     },
-    explanation: "Крок 2 для 19: RightRotate(31), потім перефарбування 19->black і 31->red. Root залишається black.",
+    ...explain(
+      "Другий поворот завершує LR fix: RightRotate(grandparent=31) + recoloring.",
+      "Після повороту новий верх локального піддерева — 19, його фарбуємо black, а старий grandparent 31 — red.",
+      "Це відновлює властивості одразу в двох площинах: структура стає збалансованішою, а кольори прибирають red-red на критичному ребрі."
+    ),
     invariant: "RB ✓ порушення для вставки 19 виправлене."
   });
 
@@ -2525,8 +2591,8 @@ function generateRbInsertScenario() {
   u = g.right;
   addRbStep(steps, tree, {
     activeNodeIds: [z.id, p.id, g.id, u.id],
-    nodeRoles: { [z.id]: "inserted", [p.id]: "parent", [g.id]: "rotation-pivot", [u.id]: "successor" },
-    codeLine: 12,
+    nodeRoles: { [z.id]: ["node", "conflict"], [p.id]: ["parent", "conflict"], [g.id]: "grandparent", [u.id]: "uncle" },
+    codeLine: 11,
     variables: {
       insert: 8,
       parent: `${p.value} (${rbColorOf(p)})`,
@@ -2534,8 +2600,12 @@ function generateRbInsertScenario() {
       uncle: `${u.value} (${rbColorOf(u)})`,
       case: "parent red + uncle red"
     },
-    explanation: "Вставка 8: parent=12 red і uncle=31 red, отже знову recoloring-case.",
-    invariant: "⚠ Потрібен recoloring перед рухом вище."
+    ...explain(
+      "Для 8 знову випадок parent red + uncle red.",
+      "Node=8 вставився в BST, став red, і тепер має red-батька 12; uncle=31 також red, тож знову виконуємо recoloring без rotation.",
+      "Rotation тут не додає користі, бо симетрично червоні parent і uncle вже можна 'погасити' простим перефарбуванням."
+    ),
+    invariant: "⚠ Потрібен recoloring."
   });
 
   rbSetColor(p, "black");
@@ -2543,13 +2613,17 @@ function generateRbInsertScenario() {
   rbSetColor(g, "red");
   addRbStep(steps, tree, {
     activeNodeIds: [p.id, g.id, u.id],
-    nodeRoles: { [p.id]: "parent", [g.id]: "rotation-pivot", [u.id]: "successor" },
+    nodeRoles: { [p.id]: ["parent", "recolored"], [u.id]: ["uncle", "recolored"], [g.id]: ["grandparent", "recolored"] },
     codeLine: 14,
     variables: {
       recolor: `${p.value}->black, ${u.value}->black, ${g.value}->red`,
       next: "перевіряємо предків вище"
     },
-    explanation: "Робимо recoloring: 12 і 31 стають black, 19 стає red. Підіймаємось вище для перевірки подальших порушень.",
+    ...explain(
+      "Recoloring робить 12 і 31 чорними, а 19 — червоним.",
+      "Локальний конфлікт знято, але тепер саме 19 може конфліктувати зі своїм батьком, тому fixup піднімається вище.",
+      "Це стандартна ідея RB insert: інколи проблему не знищуємо, а 'переносимо' на рівень вище, поки не дійдемо до стабільного чорного предка або кореня."
+    ),
     invariant: "Fixup триває вгору по дереву."
   });
 
@@ -2559,24 +2633,32 @@ function generateRbInsertScenario() {
   addRbStep(steps, tree, {
     activeNodeIds: [n38.id, n19.id],
     nodeRoles: { [n38.id]: "root", [n19.id]: "parent" },
-    codeLine: 42,
+    codeLine: 4,
     variables: {
       check: "parent(19)=38 black, додаткових порушень немає",
       root: `${n38.value} (${rbColorOf(n38)})`
     },
-    explanation: "Після підйому вище маємо black-батька, тож fixup завершується. Root обов'язково лишається black.",
+    ...explain(
+      "Після підйому вище конфлікту вже немає: parent для 19 є black.",
+      "Цикл while завершується, бо умова red-parent більше не виконується.",
+      "Фінальний крок Root.Color = Black гарантує, що навіть після ланцюжка recoloring корінь не залишиться червоним."
+    ),
     invariant: "RB ✓ усі властивості відновлено."
   });
 
   addRbStep(steps, tree, {
     activeNodeIds: [tree.root.id],
     nodeRoles: { [tree.root.id]: "root" },
-    codeLine: 43,
+    codeLine: 4,
     variables: {
       root: `${tree.root.value} (${rbColorOf(tree.root)})`,
       final: "38(B) -> left 19(R), right 41(B); 19.left=12(B), 19.right=31(B), 12.left=8(R)"
     },
-    explanation: "Фінальне дерево після послідовної вставки 41, 38, 31, 12, 19, 8. Підсумок: RB insert = BST insert + fixup (recoloring/rotations) + root black.",
+    ...explain(
+      "Фінал: RB insert = BST-вставка + fixup (recoloring/rotations) + root black.",
+      "Після послідовності 41, 38, 31, 12, 19, 8 дерево зберігає BST-порядок і RB-правила кольорів.",
+      "Головна різниця з простою BST: дерево не вироджується в ланцюжок, бо локальні порушення одразу гасяться через чіткі випадки uncle red або uncle black/null."
+    ),
     invariant: "RB фінал ✓ root black, red-вузли мають black-дітей, BST-порядок збережено.",
     finalStep: true
   });
@@ -2663,6 +2745,7 @@ function render() {
 
   renderTree(step);
   renderCode(codes[currentScenario.codeKey], step.highlightedCodeLine ?? step.codeLine);
+  scrollActiveCodeLineIntoView();
   renderExplanation(step);
   updateControls();
 }
@@ -2845,6 +2928,27 @@ function renderCode(lines, activeLine) {
     row.append(number, code);
     codeBlock.appendChild(row);
   });
+}
+
+function scrollActiveCodeLineIntoView() {
+  const activeLine = codeBlock.querySelector(".code-line.active");
+  if (!activeLine) {
+    return;
+  }
+
+  const blockTop = codeBlock.scrollTop;
+  const blockBottom = blockTop + codeBlock.clientHeight;
+  const lineTop = activeLine.offsetTop;
+  const lineBottom = lineTop + activeLine.offsetHeight;
+  const padding = 18;
+
+  if (lineTop < blockTop + padding || lineBottom > blockBottom - padding) {
+    activeLine.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+      inline: "nearest"
+    });
+  }
 }
 
 function renderExplanation(step) {

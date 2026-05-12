@@ -1,7 +1,13 @@
 namespace agapovlab6;
 
+/// <summary>
+/// Клас Menu: містить частину логіки лабораторної роботи з деревами.
+/// </summary>
 public static partial class Menu
 {
+    /// <summary>
+    /// Метод RunAvlMenu: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void RunAvlMenu()
     {
         while (true)
@@ -60,6 +66,9 @@ public static partial class Menu
         }
     }
 
+    /// <summary>
+    /// Метод SearchInAvl: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void SearchInAvl()
     {
         if (currentAVL == null)
@@ -88,6 +97,9 @@ public static partial class Menu
         }
     }
 
+    /// <summary>
+    /// Метод RunAvlDemo: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void RunAvlDemo(string caseName, params int[] values)
     {
         currentAVL = new AvlTree();
@@ -104,6 +116,9 @@ public static partial class Menu
         Console.WriteLine($"\nПісля балансування AVL-дерево для {caseName} case готове.");
     }
 
+    /// <summary>
+    /// Метод BuildAvlFromInput: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void BuildAvlFromInput()
     {
         Console.Write("Введіть кількість AVL-вузлів: ");
@@ -120,6 +135,9 @@ public static partial class Menu
         currentAVL.PrintTree();
     }
 
+    /// <summary>
+    /// Метод PrintCurrentAvl: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private static void PrintCurrentAvl()
     {
         if (currentAVL == null)

@@ -1,12 +1,21 @@
 namespace agapovlab6;
 
+/// <summary>
+/// Клас AvlTree: містить частину логіки лабораторної роботи з деревами.
+/// </summary>
 public partial class AvlTree
 {
+    /// <summary>
+    /// Метод Insert: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     public void Insert(int value)
     {
         Root = InsertNode(Root, value);
     }
 
+    /// <summary>
+    /// Метод InsertNode: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
+    /// </summary>
     private AvlNode InsertNode(AvlNode? node, int value)
     {
         if (node == null)

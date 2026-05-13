@@ -1,42 +1,37 @@
 namespace agapovlab6
 {
     /// <summary>
-    /// Завдання: процедура Transplant для заміни одного піддерева іншим.
+    /// ����� �������� ������, ���� ��������������� ����� ��� BST-��������.
     /// </summary>
     public partial class RecursiveTree
     {
         /// <summary>
-        /// Замінює піддерево з коренем u на піддерево з коренем v.
-        /// Використовується під час видалення вузлів з BST.
+        /// ������ �������� � ������� <paramref name="u"/> ��������� <paramref name="v"/>.
+        /// ��������������� � �������� ��������� � BST.
         /// </summary>
-        /// <param name="root">Корінь дерева</param>
-        /// <param name="u">Вузол який потрібно замінити</param>
-        /// <param name="v">Вузол який стає на місце u</param>
-        /// <returns>Корінь дерева після заміни</returns>
-        /// <summary>
-        /// Метод Transplant: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-        /// </summary>
-        public static RecursiveTree? Transplant(RecursiveTree? root, RecursiveTree u, RecursiveTree? v) // Замінюємо піддерево u на піддерево v
+        public static RecursiveTree? Transplant(RecursiveTree? root, RecursiveTree u, RecursiveTree? v)
         {
-            if (u.Parent == null) // Якщо u не має батька, значить це корінь дерева
+            // ���� �������� �����, ����� ������� ��� v.
+            if (u.Parent == null)
             {
-                root = v; // Новим коренем стає v
+                root = v;
             }
-            else if (u == u.Parent.Left) // Якщо u був лівим нащадком свого батька
+            else if (u == u.Parent.Left)
             {
-                u.Parent.SetLeft(v); // То на його місце ставимо v зліва
+                u.Parent.SetLeft(v);
             }
-            else // Інакше u був правим нащадком
+            else
             {
-                u.Parent.SetRight(v); // Тому ставимо v справа від батька
-            }
-
-            if (v != null) // Якщо піддерево v існує, йому треба правильно виставити батька
-            {
-                v.Parent = u.Parent; // Батько у v тепер такий самий, як був у u
+                u.Parent.SetRight(v);
             }
 
-            return root; // Повертаємо корінь, бо він міг змінитися
+            // ������������ ��������� ����������� ��'���� ��� ������ ��������.
+            if (v != null)
+            {
+                v.Parent = u.Parent;
+            }
+
+            return root;
         }
     }
 }

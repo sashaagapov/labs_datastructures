@@ -1,34 +1,28 @@
 namespace agapovlab6;
 
-/// <summary>
-/// Клас Menu: містить частину логіки лабораторної роботи з деревами.
-/// </summary>
 public static partial class Menu
 {
-    /// <summary>
-    /// Метод RunBstMenu: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void RunBstMenu()
     {
         while (true)
         {
-            Console.WriteLine("\n===== Бінарне дерево пошуку BST =====");
-            Console.WriteLine("1. Створити BST");
-            Console.WriteLine("2. Показати BST");
+            Console.WriteLine("\n===== BST =====");
+            Console.WriteLine("1. Create BST");
+            Console.WriteLine("2. Show BST");
             Console.WriteLine("3. Iterative InOrder");
             Console.WriteLine("4. TreeMinimum / TreeMaximum");
             Console.WriteLine("5. TreePredecessor");
             Console.WriteLine("6. TreeSuccessor");
-            Console.WriteLine("7. TreeInsert — перевірка BST");
+            Console.WriteLine("7. TreeInsert check (InOrder)");
             Console.WriteLine("8. TreeDelete");
             Console.WriteLine("9. LeftRotate");
             Console.WriteLine("10. RightRotate");
-            Console.WriteLine("0. Назад");
-            Console.Write("Ваш вибір: ");
+            Console.WriteLine("0. Back");
+            Console.Write("Your choice: ");
 
             if (!int.TryParse(Console.ReadLine(), out int choice))
             {
-                Console.WriteLine("Введіть число.");
+                Console.WriteLine("Enter a number.");
                 continue;
             }
 
@@ -67,39 +61,33 @@ public static partial class Menu
                 case 0:
                     return;
                 default:
-                    Console.WriteLine("Невірний вибір. Спробуйте ще раз.");
+                    Console.WriteLine("Invalid choice. Try again.");
                     WaitForKey();
                     break;
             }
         }
     }
 
-    /// <summary>
-    /// Метод CreateBST: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void CreateBST()
     {
-        Console.Write("Введіть кількість вузлів: ");
+        Console.Write("Enter number of nodes: ");
         if (int.TryParse(Console.ReadLine(), out int n) && n > 0)
         {
             currentBST = Service.BuildBST(n);
-            Console.WriteLine("BST успішно створено!");
+            Console.WriteLine("BST created.");
         }
         else
         {
-            Console.WriteLine("Введено некоректну кількість.");
+            Console.WriteLine("Invalid count.");
         }
         WaitForKey();
     }
 
-    /// <summary>
-    /// Метод ShowBST: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void ShowBST()
     {
         if (currentBST == null)
         {
-            Console.WriteLine("Спочатку створіть BST (пункт 1).");
+            Console.WriteLine("Create BST first (option 1).");
             WaitForKey();
             return;
         }
@@ -109,39 +97,33 @@ public static partial class Menu
         WaitForKey();
     }
 
-    /// <summary>
-    /// Метод ExecuteTask4: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void ExecuteTask4()
     {
         if (currentBST == null)
         {
-            Console.WriteLine("Спочатку створіть BST (пункт 1).");
+            Console.WriteLine("Create BST first (option 1).");
             WaitForKey();
             return;
         }
 
-        Console.WriteLine($"Мінімум в дереві: {RecursiveTree.TreeMinimum(currentBST).NodeValue}");
-        Console.WriteLine($"Максимум в дереві: {RecursiveTree.TreeMaximum(currentBST).NodeValue}");
+        Console.WriteLine($"Minimum: {RecursiveTree.TreeMinimum(currentBST).NodeValue}");
+        Console.WriteLine($"Maximum: {RecursiveTree.TreeMaximum(currentBST).NodeValue}");
 
         WaitForKey();
     }
 
-    /// <summary>
-    /// Метод ExecuteTask5: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void ExecuteTask5()
     {
         if (currentBST == null)
         {
-            Console.WriteLine("Спочатку створіть BST (пункт 1).");
+            Console.WriteLine("Create BST first (option 1).");
             WaitForKey();
             return;
         }
-        Console.Write("Введіть значення вузла для якого шукаєте predecessor: ");
+        Console.Write("Enter value to find predecessor: ");
         if (!int.TryParse(Console.ReadLine(), out int value))
         {
-            Console.WriteLine("Введіть число: ");
+            Console.WriteLine("Enter a number.");
             WaitForKey();
             return;
         }
@@ -149,32 +131,29 @@ public static partial class Menu
 
         if (predecessor == null)
         {
-            Console.WriteLine("Predecessor не існує — це мінімальний елемент дерева.");
+            Console.WriteLine("Predecessor does not exist.");
         }
         else
         {
-            Console.WriteLine($"Predecessor для {value}: {predecessor.NodeValue}");
+            Console.WriteLine($"Predecessor for {value}: {predecessor.NodeValue}");
         }
 
         WaitForKey();
     }
 
-    /// <summary>
-    /// Метод ExecuteTask5Successor: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void ExecuteTask5Successor()
     {
         if (currentBST == null)
         {
-            Console.WriteLine("Спочатку створіть BST (пункт 1).");
+            Console.WriteLine("Create BST first (option 1).");
             WaitForKey();
             return;
         }
 
-        Console.Write("Введіть значення вузла для якого шукаєте successor: ");
+        Console.Write("Enter value to find successor: ");
         if (!int.TryParse(Console.ReadLine(), out int value))
         {
-            Console.WriteLine("Введіть число: ");
+            Console.WriteLine("Enter a number.");
             WaitForKey();
             return;
         }
@@ -183,78 +162,69 @@ public static partial class Menu
 
         if (successor == null)
         {
-            Console.WriteLine("Successor не існує — це максимальний елемент дерева.");
+            Console.WriteLine("Successor does not exist.");
         }
         else
         {
-            Console.WriteLine($"Successor для {value}: {successor.NodeValue}");
+            Console.WriteLine($"Successor for {value}: {successor.NodeValue}");
         }
 
         WaitForKey();
     }
 
-    /// <summary>
-    /// Метод ExecuteTask6: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void ExecuteTask6()
     {
         if (currentBST == null)
         {
-            Console.WriteLine("Спочатку створіть BST (пункт 1).");
+            Console.WriteLine("Create BST first (option 1).");
             WaitForKey();
             return;
         }
 
-        Console.Write("InOrder (перевірка BST): ");
+        Console.Write("InOrder: ");
         currentBST.IterativeInOrder(currentBST);
         Console.WriteLine();
 
         WaitForKey();
     }
 
-    /// <summary>
-    /// Метод ExecuteTask7: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void ExecuteTask7()
     {
         if (currentBST == null)
         {
-            Console.WriteLine("Спочатку створіть BST (пункт 1).");
+            Console.WriteLine("Create BST first (option 1).");
             WaitForKey();
             return;
         }
 
-        Console.Write("Введіть значення вузла для видалення: ");
+        Console.Write("Enter value to delete: ");
         if (!int.TryParse(Console.ReadLine(), out int value))
         {
-            Console.WriteLine("Введіть число: ");
+            Console.WriteLine("Enter a number.");
             WaitForKey();
             return;
         }
 
         currentBST = RecursiveTree.TreeDelete(currentBST, value);
-        Console.WriteLine($"Вузол зі значенням {value} видалено (якщо він існував).");
+        Console.WriteLine($"Delete operation for {value} completed.");
 
         WaitForKey();
     }
 
-    /// <summary>
-    /// Метод ExecuteTask8: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void ExecuteTask8()
     {
         if (currentBST == null)
         {
-            Console.WriteLine("Спочатку створіть BST.");
+            Console.WriteLine("Create BST first.");
             WaitForKey();
             return;
         }
 
-        Console.Write("Введіть значення вузла для лівого повороту: ");
+        Console.Write("Enter node value for left rotate: ");
 
         if (!int.TryParse(Console.ReadLine(), out int leftRotateValue))
         {
-            Console.WriteLine("Некоректне значення.");
+            Console.WriteLine("Invalid value.");
             WaitForKey();
             return;
         }
@@ -263,36 +233,33 @@ public static partial class Menu
 
         if (leftRotateNode == null)
         {
-            Console.WriteLine("Вузол не знайдено.");
+            Console.WriteLine("Node not found.");
             WaitForKey();
             return;
         }
 
         currentBST = RecursiveTree.LeftRotate(currentBST, leftRotateNode);
 
-        Console.WriteLine("BST після лівого повороту:");
+        Console.WriteLine("BST after left rotate:");
         Service.PrintTree(currentBST, "", false);
 
         WaitForKey();
     }
 
-    /// <summary>
-    /// Метод ExecuteTask9: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void ExecuteTask9()
     {
         if (currentBST == null)
         {
-            Console.WriteLine("Спочатку створіть BST.");
+            Console.WriteLine("Create BST first.");
             WaitForKey();
             return;
         }
 
-        Console.Write("Введіть значення вузла для правого повороту: ");
+        Console.Write("Enter node value for right rotate: ");
 
         if (!int.TryParse(Console.ReadLine(), out int rightRotateValue))
         {
-            Console.WriteLine("Некоректне значення.");
+            Console.WriteLine("Invalid value.");
             WaitForKey();
             return;
         }
@@ -301,14 +268,14 @@ public static partial class Menu
 
         if (rightRotateNode == null)
         {
-            Console.WriteLine("Вузол не знайдено.");
+            Console.WriteLine("Node not found.");
             WaitForKey();
             return;
         }
 
         currentBST = RecursiveTree.RightRotate(currentBST, rightRotateNode);
 
-        Console.WriteLine("BST після правого повороту:");
+        Console.WriteLine("BST after right rotate:");
         Service.PrintTree(currentBST, "", false);
 
         WaitForKey();

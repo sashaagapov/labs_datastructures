@@ -1,29 +1,23 @@
 namespace agapovlab6;
 
-/// <summary>
-/// Клас Menu: містить частину логіки лабораторної роботи з деревами.
-/// </summary>
 public static partial class Menu
 {
-    /// <summary>
-    /// Метод RunRedBlackMenu: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void RunRedBlackMenu()
     {
         while (true)
         {
-            Console.WriteLine("\n===== Червоно-чорне дерево =====");
-            Console.WriteLine("1. Побудувати Red-Black Tree з введення");
-            Console.WriteLine("2. Показати Red-Black Tree");
+            Console.WriteLine("\n===== Red-Black Tree =====");
+            Console.WriteLine("1. Build Red-Black Tree from input");
+            Console.WriteLine("2. Show Red-Black Tree");
             Console.WriteLine("3. Demo insert: 41, 38, 31, 12, 19, 8");
-            Console.WriteLine("4. Видалити вузол з Red-Black Tree");
+            Console.WriteLine("4. Delete node from Red-Black Tree");
             Console.WriteLine("5. Demo delete: leaf / one-child / two-children / root");
-            Console.WriteLine("0. Назад");
-            Console.Write("Ваш вибір: ");
+            Console.WriteLine("0. Back");
+            Console.Write("Your choice: ");
 
             if (!int.TryParse(Console.ReadLine(), out int choice))
             {
-                Console.WriteLine("Введіть число.");
+                Console.WriteLine("Enter a number.");
                 continue;
             }
 
@@ -32,44 +26,35 @@ public static partial class Menu
                 case 1:
                     BuildRedBlackFromInput();
                     break;
-
                 case 2:
                     PrintCurrentRedBlackTree();
                     break;
-
                 case 3:
                     RunRedBlackDemo();
                     break;
-
                 case 4:
                     DeleteFromRedBlackTree();
                     break;
-
                 case 5:
                     RunRedBlackDeleteDemo();
                     break;
-
                 case 0:
                     return;
-
                 default:
-                    Console.WriteLine("Невірний вибір. Спробуйте ще раз.");
+                    Console.WriteLine("Invalid choice. Try again.");
                     WaitForKey();
                     break;
             }
         }
     }
 
-    /// <summary>
-    /// Метод BuildRedBlackFromInput: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void BuildRedBlackFromInput()
     {
-        Console.Write("Введіть кількість вузлів: ");
+        Console.Write("Enter number of nodes: ");
 
         if (!int.TryParse(Console.ReadLine(), out int n) || n <= 0)
         {
-            Console.WriteLine("Кількість має бути додатним числом.");
+            Console.WriteLine("Count must be a positive number.");
             WaitForKey();
             return;
         }
@@ -78,11 +63,11 @@ public static partial class Menu
 
         for (int i = 0; i < n; i++)
         {
-            Console.Write($"Введіть значення вузла {i + 1}: ");
+            Console.Write($"Enter value for node {i + 1}: ");
 
             if (!int.TryParse(Console.ReadLine(), out int value))
             {
-                Console.WriteLine("Некоректне значення. Спробуйте ще раз.");
+                Console.WriteLine("Invalid value. Try again.");
                 i--;
                 continue;
             }
@@ -90,20 +75,17 @@ public static partial class Menu
             currentRedBlackTree.Insert(value);
         }
 
-        Console.WriteLine("Red-Black Tree побудовано:");
+        Console.WriteLine("Red-Black Tree built:");
         currentRedBlackTree.PrintTree();
 
         WaitForKey();
     }
 
-    /// <summary>
-    /// Метод PrintCurrentRedBlackTree: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void PrintCurrentRedBlackTree()
     {
         if (currentRedBlackTree == null)
         {
-            Console.WriteLine("Red-Black Tree ще не побудовано.");
+            Console.WriteLine("Red-Black Tree is not built yet.");
             WaitForKey();
             return;
         }
@@ -112,9 +94,6 @@ public static partial class Menu
         WaitForKey();
     }
 
-    /// <summary>
-    /// Метод RunRedBlackDemo: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void RunRedBlackDemo()
     {
         int[] values = { 41, 38, 31, 12, 19, 8 };
@@ -125,32 +104,29 @@ public static partial class Menu
 
         foreach (int value in values)
         {
-            Console.WriteLine($"\nВставляємо {value}:");
+            Console.WriteLine($"\nInsert {value}:");
             currentRedBlackTree.Insert(value);
             currentRedBlackTree.PrintTree();
         }
 
-        Console.WriteLine("\nDemo завершено.");
+        Console.WriteLine("\nInsert demo completed.");
         WaitForKey();
     }
 
-    /// <summary>
-    /// Метод DeleteFromRedBlackTree: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void DeleteFromRedBlackTree()
     {
         if (currentRedBlackTree == null)
         {
-            Console.WriteLine("Red-Black Tree ще не побудовано.");
+            Console.WriteLine("Red-Black Tree is not built yet.");
             WaitForKey();
             return;
         }
 
-        Console.Write("Введіть значення вузла для видалення: ");
+        Console.Write("Enter value to delete: ");
 
         if (!int.TryParse(Console.ReadLine(), out int value))
         {
-            Console.WriteLine("Введіть коректне число.");
+            Console.WriteLine("Enter a valid number.");
             WaitForKey();
             return;
         }
@@ -158,55 +134,52 @@ public static partial class Menu
         bool deleted = currentRedBlackTree.Delete(value);
         if (!deleted)
         {
-            Console.WriteLine($"Вузол {value} не знайдено.");
+            Console.WriteLine($"Node {value} not found.");
             WaitForKey();
             return;
         }
 
-        Console.WriteLine($"Вузол {value} видалено. Поточне Red-Black Tree:");
+        Console.WriteLine($"Node {value} deleted. Current Red-Black Tree:");
         currentRedBlackTree.PrintTree();
         WaitForKey();
     }
 
-    /// <summary>
-    /// Метод RunRedBlackDeleteDemo: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void RunRedBlackDeleteDemo()
     {
         int[] values = { 41, 38, 31, 12, 19, 8 };
 
         currentRedBlackTree = new RedBlackTree();
-        Console.WriteLine("\nDemo Red-Black delete. Початкові вставки: 41, 38, 31, 12, 19, 8");
+        Console.WriteLine("\nDemo Red-Black delete. Initial inserts: 41, 38, 31, 12, 19, 8");
 
         foreach (int value in values)
         {
             currentRedBlackTree.Insert(value);
         }
 
-        Console.WriteLine("\nПочаткове дерево:");
+        Console.WriteLine("\nInitial tree:");
         currentRedBlackTree.PrintTree();
 
-        Console.WriteLine("\nВидалення 31 (leaf):");
+        Console.WriteLine("\nDelete 31 (leaf):");
         currentRedBlackTree.Delete(31);
         currentRedBlackTree.PrintTree();
 
-        Console.WriteLine("\nВидалення 12 (вузол з одним child):");
+        Console.WriteLine("\nDelete 12 (one child):");
         currentRedBlackTree.Delete(12);
         currentRedBlackTree.PrintTree();
 
-        Console.WriteLine("\nВидалення 38 (вузол з двома children):");
+        Console.WriteLine("\nDelete 38 (two children):");
         currentRedBlackTree.Delete(38);
         currentRedBlackTree.PrintTree();
 
         int? rootValue = currentRedBlackTree.Root?.Value;
         if (rootValue.HasValue)
         {
-            Console.WriteLine($"\nВидалення {rootValue.Value} (root):");
+            Console.WriteLine($"\nDelete {rootValue.Value} (root):");
             currentRedBlackTree.Delete(rootValue.Value);
             currentRedBlackTree.PrintTree();
         }
 
-        Console.WriteLine("\nDemo delete завершено.");
+        Console.WriteLine("\nDelete demo completed.");
         WaitForKey();
     }
 }

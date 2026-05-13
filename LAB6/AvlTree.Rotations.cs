@@ -1,21 +1,23 @@
 namespace agapovlab6;
 
 /// <summary>
-/// РљР»Р°СЃ AvlTree: РјС–СЃС‚РёС‚СЊ С‡Р°СЃС‚РёРЅСѓ Р»РѕРіС–РєРё Р»Р°Р±РѕСЂР°С‚РѕСЂРЅРѕС— СЂРѕР±РѕС‚Рё Р· РґРµСЂРµРІР°РјРё.
+/// Допоміжні повороти AVL-дерева для відновлення балансу.
 /// </summary>
 public partial class AvlTree
 {
     /// <summary>
-    /// РњРµС‚РѕРґ RightRotate: РІРёРєРѕРЅСѓС” РѕРєСЂРµРјРёР№ РєСЂРѕРє Р°Р»РіРѕСЂРёС‚РјСѓ Р°Р±Рѕ СЃРµСЂРІС–СЃРЅСѓ РґС–СЋ РґР»СЏ РїРѕС‚РѕС‡РЅРѕРіРѕ РјРѕРґСѓР»СЏ.
+    /// Виконує правий поворот навколо вузла <paramref name="y"/>.
     /// </summary>
     private AvlNode RightRotate(AvlNode y)
     {
         AvlNode x = y.Left!;
         AvlNode? temp = x.Right;
 
+        // Після повороту temp стає лівим піддеревом y.
         x.Right = y;
         y.Left = temp;
 
+        // Висоти оновлюємо знизу вгору.
         UpdateHeight(y);
         UpdateHeight(x);
 
@@ -23,13 +25,14 @@ public partial class AvlTree
     }
 
     /// <summary>
-    /// РњРµС‚РѕРґ LeftRotate: РІРёРєРѕРЅСѓС” РѕРєСЂРµРјРёР№ РєСЂРѕРє Р°Р»РіРѕСЂРёС‚РјСѓ Р°Р±Рѕ СЃРµСЂРІС–СЃРЅСѓ РґС–СЋ РґР»СЏ РїРѕС‚РѕС‡РЅРѕРіРѕ РјРѕРґСѓР»СЏ.
+    /// Виконує лівий поворот навколо вузла <paramref name="x"/>.
     /// </summary>
     private AvlNode LeftRotate(AvlNode x)
     {
         AvlNode y = x.Right!;
         AvlNode? temp = y.Left;
 
+        // Симетрична операція до RightRotate.
         y.Left = x;
         x.Right = temp;
 

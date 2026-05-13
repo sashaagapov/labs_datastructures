@@ -1,28 +1,22 @@
 namespace agapovlab6;
 
-/// <summary>
-/// Клас Menu: містить частину логіки лабораторної роботи з деревами.
-/// </summary>
 public static partial class Menu
 {
-    /// <summary>
-    /// Метод RunBinaryTreeMenu: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void RunBinaryTreeMenu()
     {
         while (true)
         {
-            Console.WriteLine("\n===== Звичайне бінарне дерево =====");
-            Console.WriteLine("1. Створити звичайне дерево");
-            Console.WriteLine("2. Показати звичайне дерево");
+            Console.WriteLine("\n===== Binary Tree =====");
+            Console.WriteLine("1. Create binary tree");
+            Console.WriteLine("2. Show binary tree");
             Console.WriteLine("3. PreOrder / PostOrder");
-            Console.WriteLine("4. InOrder (нерекурсивний)");
-            Console.WriteLine("0. Назад");
-            Console.Write("Ваш вибір: ");
+            Console.WriteLine("4. InOrder (iterative)");
+            Console.WriteLine("0. Back");
+            Console.Write("Your choice: ");
 
             if (!int.TryParse(Console.ReadLine(), out int choice))
             {
-                Console.WriteLine("Введіть число.");
+                Console.WriteLine("Enter a number.");
                 continue;
             }
 
@@ -43,56 +37,47 @@ public static partial class Menu
                 case 0:
                     return;
                 default:
-                    Console.WriteLine("Невірний вибір. Спробуйте ще раз.");
+                    Console.WriteLine("Invalid choice. Try again.");
                     WaitForKey();
                     break;
             }
         }
     }
 
-    /// <summary>
-    /// Метод CreateTree: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void CreateTree()
     {
-        Console.Write("Введіть кількість вузлів: ");
+        Console.Write("Enter number of nodes: ");
         if (int.TryParse(Console.ReadLine(), out int n) && n > 0)
         {
             currentTree = Service.BuildTree(n);
-            Console.WriteLine("Звичайне дерево успішно створено!");
+            Console.WriteLine("Binary tree created.");
         }
         else
         {
-            Console.WriteLine("Введено некоректну кількість.");
+            Console.WriteLine("Invalid count.");
         }
         WaitForKey();
     }
 
-    /// <summary>
-    /// Метод ShowTree: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void ShowTree()
     {
         if (currentTree == null)
         {
-            Console.WriteLine("Спочатку створіть звичайне дерево (пункт 1).");
+            Console.WriteLine("Create binary tree first (option 1).");
             WaitForKey();
             return;
         }
 
-        Console.WriteLine("Звичайне дерево:");
+        Console.WriteLine("Binary tree:");
         Service.PrintTree(currentTree, "", false);
         WaitForKey();
     }
 
-    /// <summary>
-    /// Метод ExecuteTask2: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void ExecuteTask2()
     {
         if (currentTree == null)
         {
-            Console.WriteLine("Спочатку створіть звичайне дерево (пункт 1).");
+            Console.WriteLine("Create binary tree first (option 1).");
             WaitForKey();
             return;
         }
@@ -108,14 +93,11 @@ public static partial class Menu
         WaitForKey();
     }
 
-    /// <summary>
-    /// Метод ExecuteTask3: виконує окремий крок алгоритму або сервісну дію для поточного модуля.
-    /// </summary>
     private static void ExecuteTask3()
     {
         if (currentTree == null)
         {
-            Console.WriteLine("Спочатку створіть звичайне дерево (пункт 1).");
+            Console.WriteLine("Create binary tree first (option 1).");
             WaitForKey();
             return;
         }

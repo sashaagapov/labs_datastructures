@@ -1,12 +1,5 @@
 namespace agapovlab6
 {
-    /// <summary>
-    /// Клас для управління меню програми.
-    /// Зберігає стан двох дерев — звичайного та BST.
-    /// </summary>
-    /// <summary>
-    /// Клас Menu: містить частину логіки лабораторної роботи з деревами.
-    /// </summary>
     public static partial class Menu
     {
         private static RecursiveTree currentTree = null;
@@ -14,28 +7,26 @@ namespace agapovlab6
         private static AvlTree? currentAVL;
         private static RedBlackTree? currentRedBlackTree;
 
-        /// <summary>
-        /// Запускає головне меню програми та обробляє вибір користувача.
-        /// </summary>
         public static void Run()
         {
             bool isRunning = true;
             while (isRunning)
             {
                 Console.WriteLine("========================== LAB6 ==============================");
-                Console.WriteLine($"Звичайне дерево:   {(currentTree != null ? "створено" : "не створено")}");
-                Console.WriteLine($"BST:               {(currentBST != null ? "створено" : "не створено")}");
-                Console.WriteLine($"AVL:               {(currentAVL != null ? "створено" : "не створено")}");
-                Console.WriteLine($"Red-Black Tree:    {(currentRedBlackTree != null ? "створено" : "не створено")}");
+                Console.WriteLine($"Binary tree:        {(currentTree != null ? "created" : "not created")}");
+                Console.WriteLine($"BST:                {(currentBST != null ? "created" : "not created")}");
+                Console.WriteLine($"AVL:                {(currentAVL != null ? "created" : "not created")}");
+                Console.WriteLine($"Red-Black Tree:     {(currentRedBlackTree != null ? "created" : "not created")}");
                 Console.WriteLine("==============================================================");
-                Console.WriteLine("1. Звичайне бінарне дерево");
-                Console.WriteLine("2. Бінарне дерево пошуку BST");
-                Console.WriteLine("3. AVL-дерево");
-                Console.WriteLine("4. Червоно-чорне дерево");
+                Console.WriteLine("1. Binary tree");
+                Console.WriteLine("2. BST tree");
+                Console.WriteLine("3. AVL tree");
+                Console.WriteLine("4. Red-Black tree");
+                Console.WriteLine("5. Interval tree LEFT-ROTATE demo");
                 Console.WriteLine("==============================================================");
-                Console.WriteLine("0. Вихід");
+                Console.WriteLine("0. Exit");
                 Console.WriteLine("==============================================================");
-                Console.Write("Виберіть дію: ");
+                Console.Write("Select action: ");
 
                 if (int.TryParse(Console.ReadLine(), out int choice))
                 {
@@ -53,11 +44,15 @@ namespace agapovlab6
                         case 4:
                             RunRedBlackMenu();
                             break;
+                        case 5:
+                            IntervalTreeDemo.Run();
+                            WaitForKey();
+                            break;
                         case 0:
                             isRunning = false;
                             break;
                         default:
-                            Console.WriteLine("Невірний вибір. Спробуйте ще раз.");
+                            Console.WriteLine("Invalid choice. Try again.");
                             WaitForKey();
                             break;
                     }
@@ -65,12 +60,9 @@ namespace agapovlab6
             }
         }
 
-        /// <summary>
-        /// Очікує натискання Enter перед поверненням у меню.
-        /// </summary>
         private static void WaitForKey()
         {
-            Console.WriteLine("Натисніть Enter, щоб повернутись в меню...");
+            Console.WriteLine("Press Enter to return to menu...");
             Console.ReadLine();
         }
     }

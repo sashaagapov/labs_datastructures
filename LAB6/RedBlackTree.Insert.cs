@@ -1,15 +1,16 @@
 namespace agapovlab6;
 
 /// <summary>
-/// РљР»Р°СЃ RedBlackTree: РјС–СЃС‚РёС‚СЊ С‡Р°СЃС‚РёРЅСѓ Р»РѕРіС–РєРё Р»Р°Р±РѕСЂР°С‚РѕСЂРЅРѕС— СЂРѕР±РѕС‚Рё Р· РґРµСЂРµРІР°РјРё.
+/// Операції вставки в червоно-чорне дерево.
 /// </summary>
 public partial class RedBlackTree
 {
     /// <summary>
-    /// РњРµС‚РѕРґ Insert: РІРёРєРѕРЅСѓС” РѕРєСЂРµРјРёР№ РєСЂРѕРє Р°Р»РіРѕСЂРёС‚РјСѓ Р°Р±Рѕ СЃРµСЂРІС–СЃРЅСѓ РґС–СЋ РґР»СЏ РїРѕС‚РѕС‡РЅРѕРіРѕ РјРѕРґСѓР»СЏ.
+    /// Вставляє значення у дерево. Дублікати ігноруються.
     /// </summary>
     public void Insert(int value)
     {
+        // Новий вузол вставляється червоним, щоб не збільшувати black-height шляхів.
         RedBlackNode newNode = new RedBlackNode(value);
 
         RedBlackNode? parent = null;
@@ -49,10 +50,10 @@ public partial class RedBlackTree
         }
 
         InsertFixup(newNode);
-
     }
+
     /// <summary>
-    /// РњРµС‚РѕРґ InsertFixup: РІРёРєРѕРЅСѓС” РѕРєСЂРµРјРёР№ РєСЂРѕРє Р°Р»РіРѕСЂРёС‚РјСѓ Р°Р±Рѕ СЃРµСЂРІС–СЃРЅСѓ РґС–СЋ РґР»СЏ РїРѕС‚РѕС‡РЅРѕРіРѕ РјРѕРґСѓР»СЏ.
+    /// Відновлює властивості RB-дерева після вставки.
     /// </summary>
     private void InsertFixup(RedBlackNode node)
     {
@@ -64,16 +65,17 @@ public partial class RedBlackTree
             {
                 RedBlackNode? uncle = grandparent.Right;
 
+                // Якщо дядько червоний, робимо лише перефарбування і піднімаємось вище.
                 if (IsRed(uncle))
                 {
                     SetColor(node.Parent, NodeColor.Black);
                     SetColor(uncle, NodeColor.Black);
                     SetColor(grandparent, NodeColor.Red);
-
                     node = grandparent;
                 }
                 else
                 {
+                    // Випадок "кут" перетворюємо в "лінію", потім робимо поворот.
                     if (node == node.Parent!.Right)
                     {
                         node = node.Parent;
@@ -94,7 +96,6 @@ public partial class RedBlackTree
                     SetColor(node.Parent, NodeColor.Black);
                     SetColor(uncle, NodeColor.Black);
                     SetColor(grandparent, NodeColor.Red);
-
                     node = grandparent;
                 }
                 else

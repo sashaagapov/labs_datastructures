@@ -1,13 +1,10 @@
 namespace agapovlab6;
 
 /// <summary>
-/// РљР»Р°СЃ RedBlackTree: РјС–СЃС‚РёС‚СЊ С‡Р°СЃС‚РёРЅСѓ Р»РѕРіС–РєРё Р»Р°Р±РѕСЂР°С‚РѕСЂРЅРѕС— СЂРѕР±РѕС‚Рё Р· РґРµСЂРµРІР°РјРё.
+/// Операції видалення з червоно-чорного дерева.
 /// </summary>
 public partial class RedBlackTree
 {
-    /// <summary>
-    /// РњРµС‚РѕРґ Search: РІРёРєРѕРЅСѓС” РѕРєСЂРµРјРёР№ РєСЂРѕРє Р°Р»РіРѕСЂРёС‚РјСѓ Р°Р±Рѕ СЃРµСЂРІС–СЃРЅСѓ РґС–СЋ РґР»СЏ РїРѕС‚РѕС‡РЅРѕРіРѕ РјРѕРґСѓР»СЏ.
-    /// </summary>
     private RedBlackNode? Search(int value)
     {
         RedBlackNode? current = Root;
@@ -31,9 +28,6 @@ public partial class RedBlackTree
         return null;
     }
 
-    /// <summary>
-    /// РњРµС‚РѕРґ Minimum: РІРёРєРѕРЅСѓС” РѕРєСЂРµРјРёР№ РєСЂРѕРє Р°Р»РіРѕСЂРёС‚РјСѓ Р°Р±Рѕ СЃРµСЂРІС–СЃРЅСѓ РґС–СЋ РґР»СЏ РїРѕС‚РѕС‡РЅРѕРіРѕ РјРѕРґСѓР»СЏ.
-    /// </summary>
     private static RedBlackNode Minimum(RedBlackNode node)
     {
         RedBlackNode current = node;
@@ -46,9 +40,6 @@ public partial class RedBlackTree
         return current;
     }
 
-    /// <summary>
-    /// РњРµС‚РѕРґ Transplant: РІРёРєРѕРЅСѓС” РѕРєСЂРµРјРёР№ РєСЂРѕРє Р°Р»РіРѕСЂРёС‚РјСѓ Р°Р±Рѕ СЃРµСЂРІС–СЃРЅСѓ РґС–СЋ РґР»СЏ РїРѕС‚РѕС‡РЅРѕРіРѕ РјРѕРґСѓР»СЏ.
-    /// </summary>
     private void Transplant(RedBlackNode u, RedBlackNode? v)
     {
         if (u.Parent == null)
@@ -71,7 +62,7 @@ public partial class RedBlackTree
     }
 
     /// <summary>
-    /// РњРµС‚РѕРґ Delete: РІРёРєРѕРЅСѓС” РѕРєСЂРµРјРёР№ РєСЂРѕРє Р°Р»РіРѕСЂРёС‚РјСѓ Р°Р±Рѕ СЃРµСЂРІС–СЃРЅСѓ РґС–СЋ РґР»СЏ РїРѕС‚РѕС‡РЅРѕРіРѕ РјРѕРґСѓР»СЏ.
+    /// Видаляє вузол за значенням. Повертає false, якщо значення не знайдено.
     /// </summary>
     public bool Delete(int value)
     {
@@ -140,7 +131,7 @@ public partial class RedBlackTree
     }
 
     /// <summary>
-    /// РњРµС‚РѕРґ DeleteFixup: РІРёРєРѕРЅСѓС” РѕРєСЂРµРјРёР№ РєСЂРѕРє Р°Р»РіРѕСЂРёС‚РјСѓ Р°Р±Рѕ СЃРµСЂРІС–СЃРЅСѓ РґС–СЋ РґР»СЏ РїРѕС‚РѕС‡РЅРѕРіРѕ РјРѕРґСѓР»СЏ.
+    /// Відновлює RB-властивості після видалення чорного вузла.
     /// </summary>
     private void DeleteFixup(RedBlackNode? node, RedBlackNode? parent)
     {
@@ -163,6 +154,8 @@ public partial class RedBlackTree
                     sibling = parent.Right;
                 }
 
+                // Якщо sibling чорний і обидві дитини чорні, "дефіцит чорного"
+                // піднімається до батька.
                 if (IsBlack(sibling?.Left) && IsBlack(sibling?.Right))
                 {
                     SetColor(sibling, NodeColor.Red);

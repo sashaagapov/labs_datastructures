@@ -5,7 +5,7 @@ namespace DequeProject.Structures
 {
     public class SetOfStacks
     {
-        private List<Stack<int>> stacks;///
+        private List<Stack<int>> stacks;
         private int capacity;
 
         public SetOfStacks(int capacity)

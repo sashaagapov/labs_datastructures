@@ -1,4 +1,6 @@
-# Lab6 Tree Visualizer
+# LAB6 Tree Visualizer
+
+Допоміжний статичний візуалізатор для лабораторної роботи 6 з деревами.
 
 ## Запуск
 
@@ -7,10 +9,15 @@ cd lab6-visualizer
 python -m http.server 8080
 ```
 
-Відкрити в браузері:
+Після запуску відкрийте:
 
 `http://localhost:8080/`
 
-## Поточний статус
+## Що є у візуалізаторі
 
-Стабільна версія для BST / AVL / rotations / Advanced Study.
+- BST: пошук, видалення, повороти.
+- AVL: вставка, LL / RR / LR / RL сценарії.
+- Red-Black Tree: вставка та `DeleteFixup` demo.
+- Режими `Learn`, `Trace`, `Defense`, `Debug`.
+
+Візуалізатор є допоміжною частиною до `LAB6` і не потрібен для збірки C# проєктів.

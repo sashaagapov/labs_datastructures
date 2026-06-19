@@ -109,6 +109,19 @@ export const defenseHints = {
       <li>Різниця з AVL: AVL жорстко балансується висотами, RB — м’якше кольорами, тому зазвичай має менше поворотів.</li>
     </ul>
   `,
+  "rbDelete": `
+    <ul>
+      <li><strong>Delete у RB</strong> починається так само, як BST delete (структурно видаляємо вузол).</li>
+      <li>Якщо видалений вузол був <strong>red</strong>, black-height не змінюється, fixup зазвичай не потрібен.</li>
+      <li>Якщо видалений вузол був <strong>black</strong>, може виникнути дефіцит чорного на одному шляху — запускаємо DeleteFixup.</li>
+      <li><strong>x</strong> — це вузол або null, який зайняв місце видаленого.</li>
+      <li>DeleteFixup дивиться на <strong>sibling</strong> вузла x, бо баланс відновлюється через протилежне плече.</li>
+      <li>Case 1 (x зліва, sibling red): sibling→black, parent→red, LeftRotate(parent), далі переходимо до black-sibling case.</li>
+      <li>Case 2 (sibling black, обидві діти black/null): sibling→red, x=parent, проблема підіймається вище.</li>
+      <li>Case 3 (sibling black, near red, far black): near→black, sibling→red, RightRotate(sibling), перехід до Case 4.</li>
+      <li>Case 4 (sibling black, far red): sibling бере колір parent, parent→black, far→black, LeftRotate(parent), проблема закривається локально.</li>
+    </ul>
+  `,
   "default": `
     <ul>
       <li>Уважно слідкуйте за тим, які вузли є активними.</li>

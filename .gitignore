@@ -1,16 +1,30 @@
-# Visual Studio
+# Build output
 bin/
 obj/
+*.lscache
+
+# IDE files
 .vs/
 .vscode/
-.DS_Store
-node_modules/
-lab6-visualizer/node_modules/
-.env
-
-# Other IDE files
-*.sln
-*.csproj
+*.user
 *.userprefs
 *.ide
 *~
+
+# OS and local cache
+.DS_Store
+Thumbs.db
+
+# JavaScript dependencies
+node_modules/
+lab6-visualizer/node_modules/
+
+# Environment and temporary files
+.env
+*.log
+*.tmp
+*.temp
+*.bak
+*.zip
+*.rar
+*.7z

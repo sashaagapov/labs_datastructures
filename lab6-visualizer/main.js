@@ -373,7 +373,18 @@ function normalizeRoleName(role) {
     inserted: "role-inserted",
     root: "role-root",
     "moved-subtree": "role-moved-subtree",
-    movedsubtree: "role-moved-subtree"
+    movedsubtree: "role-moved-subtree",
+    deleting: "role-deleting",
+    problem: "role-problem",
+    x: "role-problem",
+    "x-problem": "role-problem",
+    sibling: "role-sibling",
+    "near-child": "role-near-child",
+    nearchild: "role-near-child",
+    "far-child": "role-far-child",
+    farchild: "role-far-child",
+    blackheightfixed: "role-black-height-fixed",
+    "black-height-fixed": "role-black-height-fixed"
   };
 
   if (map[normalized]) {
@@ -445,6 +456,28 @@ function resolveNodeRoles(options, activeNodeIds, rootId) {
   }
 
   return roles;
+}
+
+function resolveNullMarkers(options) {
+  const markers = Array.isArray(options.nullMarkers) ? options.nullMarkers : [];
+
+  return markers
+    .map((marker, index) => {
+      const parentId = toNodeId(marker?.parentId ?? marker?.parent ?? marker?.node);
+      if (!parentId) {
+        return null;
+      }
+
+      const roleClass = marker?.role ? normalizeRoleName(marker.role) : "role-problem";
+      return {
+        id: marker?.id ?? `null-marker-${parentId}-${index}`,
+        parentId,
+        side: marker?.side === "right" ? "right" : "left",
+        label: marker?.label ?? "NIL",
+        roleClass
+      };
+    })
+    .filter(Boolean);
 }
 
 function extractNodeColors(tree) {
@@ -531,6 +564,7 @@ function addStep(targetSteps, tree, options = {}) {
 
   const activeNodeIds = resolveActiveNodeIds(options);
   const nodeRoles = resolveNodeRoles(options, activeNodeIds, tree.root?.id ?? null);
+  const nullMarkers = resolveNullMarkers(options);
 
   const step = {
     treeSnapshot: serializeTree(tree, options.detachedRootIds ?? []),
@@ -538,6 +572,7 @@ function addStep(targetSteps, tree, options = {}) {
     activeNodeIds,
     activeNodes: options.activeNodes ?? activeNodeIds,
     nodeRoles,
+    nullMarkers,
     codeLine: options.codeLine ?? options.highlightedCodeLine ?? 0,
     highlightedCodeLine: options.highlightedCodeLine ?? options.codeLine ?? 0,
     variables: options.variables ?? {},
@@ -2314,6 +2349,13 @@ function addRbStep(steps, tree, options = {}) {
   });
 }
 
+function addRbDeleteStep(steps, tree, options = {}) {
+  addRbStep(steps, tree, {
+    ...options,
+    operationLabel: options.operationLabel ?? "rb-delete"
+  });
+}
+
 function generateRbInsertScenario() {
   const tree = { root: null, nodes: new Map() };
   const steps = [];
@@ -2666,6 +2708,234 @@ function generateRbInsertScenario() {
   return steps;
 }
 
+function generateRbDeleteFixupScenario() {
+  const tree = buildBst([20, 10, 30, 25, 40]);
+  const steps = [];
+  const z = find(tree, 10);
+  const n20 = find(tree, 20);
+  const n30 = find(tree, 30);
+  const n25 = find(tree, 25);
+  const n40 = find(tree, 40);
+
+  rbSetColor(n20, "black");
+  rbSetColor(z, "black");
+  rbSetColor(n30, "black");
+  rbSetColor(n25, "red");
+  rbSetColor(n40, "red");
+
+  const explain = (short, medium, deep) => ({
+    explanationShort: short,
+    explanationMedium: medium,
+    explanationDeep: deep
+  });
+
+  addRbDeleteStep(steps, tree, {
+    activeNodeIds: [n20.id, n30.id],
+    nodeRoles: {
+      [n20.id]: "root",
+      [n30.id]: "sibling"
+    },
+    codeLine: 0,
+    variables: {
+      root: "20B",
+      targetDelete: "10B",
+      note: "Початкове RB-дерево валідне"
+    },
+    ...explain(
+      "Це коректне Red-Black Tree.",
+      "Це коректне Red-Black Tree. Усі шляхи до null мають однакову кількість Black-вузлів.",
+      "На старті delete ще не почався: BST-порядок валідний, root чорний, а black-height однаковий для всіх шляхів до NIL-листків."
+    ),
+    invariant: "RB старт ✓ black-height збалансований."
+  });
+
+  addRbDeleteStep(steps, tree, {
+    activeNodeIds: [z.id, n20.id],
+    nodeRoles: {
+      [z.id]: "deleting",
+      [n20.id]: "parent"
+    },
+    codeLine: 3,
+    variables: {
+      z: "10B",
+      parent: "20B",
+      "yOriginalColor": "Black"
+    },
+    ...explain(
+      "Видаляємо 10B.",
+      "Видаляємо 10B. Це Black-листок, тому після видалення один шлях втратить Black-вузол.",
+      "Delete починається як BST-delete: 10 має null-дітей, тож його можна фізично вирізати. Але оскільки колір black, виникне дефіцит чорного на цьому плечі."
+    ),
+    invariant: "Після видалення black-листка може порушитися black-height."
+  });
+
+  transplant(tree, z, null);
+  addRbDeleteStep(steps, tree, {
+    detachedRootIds: [z.id],
+    activeNodeIds: [n20.id],
+    nodeRoles: {
+      [n20.id]: "parent"
+    },
+    nullMarkers: [
+      {
+        parentId: n20.id,
+        side: "left",
+        label: "x=NIL",
+        role: "problem"
+      }
+    ],
+    codeLine: 5,
+    variables: {
+      x: "null (зліва від 20)",
+      parent: "20B",
+      issue: "дефіцит black на лівому шляху"
+    },
+    ...explain(
+      "Після видалення на місці 10 залишається null.",
+      "Після видалення на місці 10 залишається null. Null вважається Black, але шлях все одно став на один Black коротшим: раніше було 10B + nullB, тепер тільки nullB.",
+      "У CLRS-термінах це 'double-black проблема' в позиції x. Саме x представляє місце, де шляхи стали нерівними за кількістю чорних вузлів."
+    ),
+    invariant: "⚠ Потрібен DeleteFixup: black-height ліворуч менший."
+  });
+
+  addRbDeleteStep(steps, tree, {
+    activeNodeIds: [n20.id, n30.id],
+    nodeRoles: {
+      [n20.id]: "parent",
+      [n30.id]: "sibling"
+    },
+    nullMarkers: [
+      {
+        parentId: n20.id,
+        side: "left",
+        label: "x=NIL",
+        role: "problem"
+      }
+    ],
+    codeLine: 20,
+    variables: {
+      x: "left child of 20",
+      parent: "20B",
+      sibling: "30B"
+    },
+    ...explain(
+      "DeleteFixup дивиться на sibling.",
+      "DeleteFixup дивиться на sibling, бо саме sibling є протилежною стороною від проблемного x.",
+      "Коли x зліва, алгоритм бере w = x.parent.right. Далі кейси визначаються кольором w і його дітей."
+    ),
+    invariant: "Фокус DeleteFixup: x, parent, sibling."
+  });
+
+  addRbDeleteStep(steps, tree, {
+    activeNodeIds: [n30.id, n40.id, n25.id],
+    nodeRoles: {
+      [n30.id]: "sibling",
+      [n25.id]: "near-child",
+      [n40.id]: "far-child"
+    },
+    nullMarkers: [
+      {
+        parentId: n20.id,
+        side: "left",
+        label: "x=NIL",
+        role: "problem"
+      }
+    ],
+    codeLine: 29,
+    variables: {
+      sibling: "30B",
+      nearChild: "25R (ліва)",
+      farChild: "40R (права)"
+    },
+    ...explain(
+      "У sibling є дальня Red-дитина.",
+      "У sibling є дальня Red-дитина. Це означає, що проблему можна закрити локально через recoloring і LeftRotate(parent).",
+      "Для x зліва дальня дитина sibling — це w.right. Саме цей фінальний case дозволяє завершити fixup без підйому проблеми вище."
+    ),
+    invariant: "Case 4 готовий: sibling black + far red child."
+  });
+
+  rbSetColor(n30, rbColorOf(n20));
+  rbSetColor(n20, "black");
+  rbSetColor(n40, "black");
+  addRbDeleteStep(steps, tree, {
+    activeNodeIds: [n20.id, n30.id, n40.id],
+    nodeRoles: {
+      [n20.id]: ["parent", "recolored"],
+      [n30.id]: ["sibling", "recolored"],
+      [n40.id]: ["far-child", "recolored"]
+    },
+    nullMarkers: [
+      {
+        parentId: n20.id,
+        side: "left",
+        label: "x=NIL",
+        role: "problem"
+      }
+    ],
+    codeLine: 35,
+    variables: {
+      recolor: "30 <- color(20), 20 <- black, 40 <- black"
+    },
+    ...explain(
+      "Робимо recoloring перед поворотом.",
+      "Sibling бере колір parent, parent стає Black, дальня Red-дитина стає Black. Так ми готуємо дерево до фінального повороту.",
+      "Це ключ до збереження black-height після rotation: до повороту розкладаємо кольори так, щоб нова вершина піддерева мала правильний колір відносно старого parent."
+    ),
+    invariant: "Після recoloring залишився фінальний structural fix."
+  });
+
+  leftRotateBasic(tree, n20);
+  const root = find(tree, 30);
+  const parentAfterRotate = find(tree, 20);
+  const farAfterRotate = find(tree, 40);
+  const nearAfterRotate = find(tree, 25);
+  addRbDeleteStep(steps, tree, {
+    activeNodeIds: [root.id, parentAfterRotate.id],
+    nodeRoles: {
+      [parentAfterRotate.id]: ["rotation-pivot", "parent"],
+      [root.id]: ["sibling", "rotation-pivot"]
+    },
+    codeLine: 38,
+    variables: {
+      rotation: "LeftRotate(20)",
+      "new local root": "30B"
+    },
+    ...explain(
+      "Виконуємо LeftRotate(parent).",
+      "Виконуємо LeftRotate(parent). Sibling 30 піднімається, parent 20 опускається вліво.",
+      "Поворот міняє геометрію піддерева: вузол 25 переходить у праве піддерево 20, а 30 стає новим коренем локальної ділянки без втрати BST-порядку."
+    ),
+    invariant: "Структурний крок fixup виконано."
+  });
+
+  addRbDeleteStep(steps, tree, {
+    activeNodeIds: [root.id, parentAfterRotate.id, farAfterRotate.id],
+    nodeRoles: {
+      [root.id]: ["root", "black-height-fixed"],
+      [parentAfterRotate.id]: "black-height-fixed",
+      [farAfterRotate.id]: "black-height-fixed",
+      [nearAfterRotate.id]: "near-child"
+    },
+    codeLine: 39,
+    variables: {
+      root: "30B",
+      left: "20B (right child 25R)",
+      right: "40B",
+      result: "DeleteFixup завершено"
+    },
+    ...explain(
+      "Після повороту black-height відновлено.",
+      "Після повороту black-height відновлено, немає Red-Red конфліктів, корінь Black. DeleteFixup завершено.",
+      "Фінальний стан відповідає всім RB-властивостям: root чорний, червоні вузли мають чорних дітей, а кількість чорних вузлів на всіх шляхах до NIL однакова."
+    ),
+    invariant: "RB DeleteFixup фінал ✓ black-height відновлено.",
+    finalStep: true
+  });
+
+  return steps;
+}
+
 const SCENARIO_BUILDERS = {
   "bst-search": () => generateSearchScenario([20, 10, 30, 5, 15], 15),
   "delete-leaf": () => generateDeleteLeafScenario(),
@@ -2679,7 +2949,8 @@ const SCENARIO_BUILDERS = {
   "avl-lr": () => generateAvlScenario("LR", [30, 10, 20]),
   "avl-rl": () => generateAvlScenario("RL", [10, 30, 20]),
   "avl-delete-demo": () => generateAvlDeleteScenario(),
-  "rb-insert-sequence": () => generateRbInsertScenario()
+  "rb-insert-sequence": () => generateRbInsertScenario(),
+  "rb-delete-fixup": () => generateRbDeleteFixupScenario()
 };
 
 function signed(number) {
@@ -2788,6 +3059,7 @@ function renderTree(step) {
   });
 
   roots.forEach((rootId) => drawLinks(snapshot, rootId, positions));
+  drawNullMarkers(snapshot, positions, step);
   roots.forEach((rootId, index) => drawNodes(snapshot, rootId, positions, step, index > 0));
 }
 
@@ -2833,6 +3105,66 @@ function drawLinks(snapshot, nodeIdValue, positions, visited = new Set()) {
     line.setAttribute("y2", childPosition.y - 25);
     treeSvg.appendChild(line);
     drawLinks(snapshot, childId, positions, visited);
+  });
+}
+
+function estimateNullOffset(parentNode, parentPosition, positions) {
+  const children = [parentNode.left, parentNode.right]
+    .filter(Boolean)
+    .map((childId) => positions.get(childId))
+    .filter(Boolean);
+
+  if (children.length > 0) {
+    return Math.max(56, Math.min(120, Math.max(...children.map((pos) => Math.abs(pos.x - parentPosition.x)))));
+  }
+
+  if (parentNode.parent) {
+    const parentParentPos = positions.get(parentNode.parent);
+    if (parentParentPos) {
+      return Math.max(56, Math.min(120, Math.abs(parentPosition.x - parentParentPos.x) * 0.75));
+    }
+  }
+
+  return 88;
+}
+
+function drawNullMarkers(snapshot, positions, step) {
+  const markers = Array.isArray(step.nullMarkers) ? step.nullMarkers : [];
+  markers.forEach((marker) => {
+    const parentNode = snapshot.nodes[marker.parentId];
+    const parentPos = positions.get(marker.parentId);
+    if (!parentNode || !parentPos) {
+      return;
+    }
+
+    const offset = estimateNullOffset(parentNode, parentPos, positions);
+    const direction = marker.side === "right" ? 1 : -1;
+    const x = parentPos.x + direction * offset;
+    const y = parentPos.y + 104;
+
+    const link = createSvgElement("line");
+    link.setAttribute("class", "null-link");
+    link.setAttribute("x1", parentPos.x);
+    link.setAttribute("y1", parentPos.y + 25);
+    link.setAttribute("x2", x);
+    link.setAttribute("y2", y - 16);
+    treeSvg.appendChild(link);
+
+    const group = createSvgElement("g");
+    group.setAttribute("class", `null-marker ${marker.roleClass}`.trim());
+    group.setAttribute("transform", `translate(${x}, ${y})`);
+
+    const circle = createSvgElement("circle");
+    circle.setAttribute("class", "null-circle");
+    circle.setAttribute("r", "16");
+    group.appendChild(circle);
+
+    const text = createSvgElement("text");
+    text.setAttribute("class", "null-text");
+    text.textContent = marker.label;
+    group.appendChild(text);
+
+    treeSvg.appendChild(group);
   });
 }
 
@@ -2992,7 +3324,8 @@ function renderExplanation(step) {
         "avl-lr": "avlLR",
         "avl-rl": "avlRL",
         "avl-delete-demo": "avlDelete",
-        "rb-insert-sequence": "rbInsert"
+        "rb-insert-sequence": "rbInsert",
+        "rb-delete-fixup": "rbDelete"
       };
 
       hintKey = hintMap[id] ?? (id.includes("avl") ? "avlInsert" : "default");
@@ -3130,6 +3463,12 @@ function renderCustomFields(topic) {
         <button id="customRunBtn" type="button">Запустити RB insert demo (41, 38, 31, 12, 19, 8)</button>
       </div>
     `;
+  } else if (topic.customType === "rbDelete") {
+    customFields.innerHTML = `
+      <div class="custom-row">
+        <button id="customRunBtn" type="button">Запустити RB DeleteFixup demo (delete 10B)</button>
+      </div>
+    `;
   } else if (topic.customType === "search") {
     customFields.innerHTML = `
       <div class="custom-row">
@@ -3206,6 +3545,12 @@ function runCustomScenario(topic) {
   if (topic.customType === "rbInsert") {
     const customSteps = generateRbInsertScenario();
     loadScenario("rb-insert-sequence", customSteps, "Red-Black Tree insert: 41, 38, 31, 12, 19, 8", "rbInsert");
+    return;
+  }
+
+  if (topic.customType === "rbDelete") {
+    const customSteps = generateRbDeleteFixupScenario();
+    loadScenario("rb-delete-fixup", customSteps, "Red-Black Tree — DeleteFixup (delete 10B)", "rbDelete");
     return;
   }
 

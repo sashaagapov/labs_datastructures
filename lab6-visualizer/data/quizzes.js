@@ -263,5 +263,28 @@ export const quizDefinitions = {
         why: "Одна з RB-властивостей: корінь має бути чорним."
       }
     ]
+  },
+  rbDelete: {
+    title: "Квіз: Red-Black DeleteFixup",
+    questions: [
+      {
+        text: "Після видалення black-листка що може порушитись?",
+        options: ["BST-порядок", "black-height", "висота root завжди 0", "усі вузли стають red"],
+        correct: 1,
+        why: "Проблема delete в RB — це не порядок ключів, а дефіцит чорного на одному шляху."
+      },
+      {
+        text: "У DeleteFixup на кого дивимось після визначення x?",
+        options: ["На sibling", "На successor", "На minimum у root", "На будь-який red вузол"],
+        correct: 0,
+        why: "Логіка fixup побудована навколо sibling протилежного плеча від x."
+      },
+      {
+        text: "Якщо x зліва, sibling black, і дальня права дитина sibling red, який поворот виконується?",
+        options: ["RightRotate(parent)", "LeftRotate(parent)", "LeftRotate(sibling)", "Поворот не потрібен"],
+        correct: 1,
+        why: "Це фінальний case 4 для x зліва: після recoloring виконуємо LeftRotate(parent)."
+      }
+    ]
   }
 };

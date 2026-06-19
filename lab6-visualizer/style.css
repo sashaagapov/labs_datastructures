@@ -53,6 +53,18 @@
   --role-pivot-stroke: #fdba74;
   --role-moved: #818cf8;
   --role-moved-stroke: #a5b4fc;
+  --role-deleting: #dc2626;
+  --role-deleting-stroke: #fca5a5;
+  --role-problem: #ec4899;
+  --role-problem-stroke: #f9a8d4;
+  --role-sibling: #0ea5e9;
+  --role-sibling-stroke: #7dd3fc;
+  --role-near: #14b8a6;
+  --role-near-stroke: #99f6e4;
+  --role-far: #f43f5e;
+  --role-far-stroke: #fda4af;
+  --role-bh-fixed: #84cc16;
+  --role-bh-fixed-stroke: #bef264;
 }
 
 * { box-sizing: border-box; }
@@ -241,6 +253,12 @@ body.mode-defense #codePanel  { display: none; }
 .ld-inserted  { background: var(--role-inserted); border-color: var(--role-inserted-stroke); }
 .ld-root      { background: transparent; border-color: var(--green); box-shadow: 0 0 0 1.5px var(--green); }
 .ld-moved-subtree { background: var(--role-moved); border-color: var(--role-moved-stroke); }
+.ld-deleting { background: var(--role-deleting); border-color: var(--role-deleting-stroke); }
+.ld-problem { background: var(--role-problem); border-color: var(--role-problem-stroke); }
+.ld-sibling { background: var(--role-sibling); border-color: var(--role-sibling-stroke); }
+.ld-near-child { background: var(--role-near); border-color: var(--role-near-stroke); }
+.ld-far-child { background: var(--role-far); border-color: var(--role-far-stroke); }
+.ld-black-height-fixed { background: var(--role-bh-fixed); border-color: var(--role-bh-fixed-stroke); }
 
 /* ── SVG tree ── */
 #treeSvg {
@@ -286,6 +304,12 @@ body.mode-defense #codePanel  { display: none; }
 .tree-node.role-inserted  .node-circle { fill: #14532d;               stroke: var(--role-inserted-stroke);  stroke-width: 3; }
 .tree-node.role-rotation-pivot .node-circle { fill: #7c2d12;          stroke: var(--role-pivot-stroke);     stroke-width: 3; }
 .tree-node.role-moved-subtree .node-circle { fill: #312e81;           stroke: var(--role-moved-stroke);     stroke-width: 2.5; }
+.tree-node.role-deleting .node-circle { fill: #7f1d1d;                stroke: var(--role-deleting-stroke);  stroke-width: 3.2; }
+.tree-node.role-problem .node-circle { fill: #831843;                 stroke: var(--role-problem-stroke);   stroke-width: 3.2; }
+.tree-node.role-sibling .node-circle { fill: #0c4a6e;                 stroke: var(--role-sibling-stroke);   stroke-width: 3; }
+.tree-node.role-near-child .node-circle { fill: #134e4a;              stroke: var(--role-near-stroke);      stroke-width: 3; }
+.tree-node.role-far-child .node-circle { fill: #881337;               stroke: var(--role-far-stroke);       stroke-width: 3.2; }
+.tree-node.role-black-height-fixed .node-circle { fill: #365314;      stroke: var(--role-bh-fixed-stroke);  stroke-width: 3.2; }
 
 .tree-node.role-root .node-circle, .tree-node.is-root .node-circle { stroke: var(--green); }
 
@@ -302,6 +326,26 @@ body.mode-defense #codePanel  { display: none; }
 .root-label    { fill: var(--green); }
 .detached-label { fill: var(--orange-soft); }
 .root-arrow    { stroke: var(--green); stroke-width: 2; marker-end: url(#arrow); }
+.null-link {
+  stroke: #f472b6;
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+  opacity: 0.9;
+}
+.null-circle {
+  fill: #111827;
+  stroke: #f9a8d4;
+  stroke-width: 2.4;
+}
+.null-text {
+  fill: #fdf2f8;
+  font-size: 9px;
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.null-marker.role-problem .null-circle { fill: #831843; stroke: var(--role-problem-stroke); }
+.null-marker.role-black-height-fixed .null-circle { fill: #365314; stroke: var(--role-bh-fixed-stroke); }
 
 /* Role labels next to nodes */
 .role-label { font-size: 10px; font-weight: 800; text-anchor: middle; }

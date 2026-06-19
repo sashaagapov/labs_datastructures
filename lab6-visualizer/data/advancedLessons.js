@@ -218,5 +218,34 @@ export const advancedLessons = [
         text: "AVL балансує висоти жорстко, тому частіше робить повороти, але має меншу висоту. RB балансує м'якше через кольори та зазвичай робить менше rotations у вставках/видаленнях, залишаючись логарифмічним."
       }
     ]
+  },
+  {
+    id: "rb-delete-fixup",
+    title: "Red-Black Tree: DeleteFixup без паніки",
+    difficulty: "Advanced",
+    goal: "Зрозуміти, чому після видалення black-вузла з'являється проблема black-height і як 4 кейси DeleteFixup її гасять.",
+    sections: [
+      {
+        type: "intuition",
+        title: "Інтуїція",
+        text: "RB delete починається як звичайний BST delete. Складність виникає, коли видалили black-вузол: один шлях втрачає чорну висоту. DeleteFixup відновлює баланс, дивлячись на sibling вузла x."
+      },
+      {
+        type: "trace",
+        title: "4 кейси для x зліва (короткий overview)",
+        text: "Case 1: sibling red -> sibling black, parent red, LeftRotate(parent), переходимо до black-sibling кейсів. Case 2: sibling black і обидві діти black/null -> sibling red, x піднімається до parent. Case 3: sibling black, near child red, far child black -> near black, sibling red, RightRotate(sibling), це перетворює у Case 4. Case 4: sibling black і far child red -> sibling бере колір parent, parent black, far black, LeftRotate(parent), проблема закривається локально."
+      },
+      {
+        type: "visualizer",
+        title: "Подивитись DeleteFixup покроково",
+        text: "Відкрийте сценарій RB DeleteFixup і пройдіть кроки delete 10B -> x=null -> sibling=30B -> far child 40R -> recoloring -> LeftRotate(20).",
+        scenarioId: "rb-delete-fixup"
+      },
+      {
+        type: "defense",
+        title: "Що сказати на захисті",
+        text: "Критична думка: RB delete ламає не BST-порядок, а black-height. x представляє місце дефіциту black. Якщо sibling black і має far red дитину, то recoloring + rotation закривають проблему локально; якщо діти sibling чорні, проблема піднімається вище."
+      }
+    ]
   }
 ];

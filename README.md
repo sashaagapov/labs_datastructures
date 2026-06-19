@@ -1,54 +1,41 @@
-# Data Structures Labs
+# Algorithms and Data Structures Labs
 
-Welcome to the Data Structures Labs repository! This repository contains various labs designed to help you understand and implement fundamental data structures in programming.
+Навчальний репозиторій з лабораторними роботами з дисципліни АСД. Основна мова реалізації — C# (`.NET`), окремо для `LAB6` додано веб-візуалізатор для демонстрації дерев.
 
-## Table of Contents
+## Структура
 
-- [LAB 1: Arrays](#lab-1-arrays)
-- [LAB 2: Linked Lists](#lab-2-linked-lists)
-- [LAB 3: Stacks](#lab-3-stacks)
+- `LAB1` — задачі на масиви та порівняння підходів пошуку.
+- `LAB3` — консольний проєкт лабораторної роботи 3.
+- `LAB4` — дек, черга на стеках, стек на чергах, `SetOfStacks`, додаткові задачі.
+- `LAB5` — бінарні дерева: обходи, `TreeMinimum`, `TreeMaximum`, `TreePredecessor`, `TreeInsert`.
+- `LAB6` — BST, AVL та Red-Black Tree: пошук, вставка, видалення, повороти, демонстраційні меню.
+- `lab6-visualizer` — статичний візуалізатор сценаріїв для тем з дерев.
 
-## Usage Instructions
+## Збірка
 
-To use this repository, clone it to your local machine using:
+Потрібен встановлений .NET SDK.
 
 ```bash
-git clone https://github.com/sashaagapov/labs_datastructures.git
+dotnet build LAB1/labs_datastructures.sln
+dotnet build LAB3/LAB3.csproj
+dotnet build LAB4/LAB4.csproj
+dotnet build LAB5/LAB5.csproj
+dotnet build LAB6/LAB_6.csproj
 ```
 
-Make sure you have any prerequisites installed, such as [Programming Language/Environment].
+## Візуалізатор LAB6
 
-## LAB Details
+```bash
+cd lab6-visualizer
+python -m http.server 8080
+```
 
-### LAB 1: Arrays
-- **Purpose**: Learn about arrays and basic operations like insertion, deletion, and traversal.
-- **Key Concepts Covered**: Array definition, dynamic vs. static arrays, array methods.
-- **Example Usage**: Implementing a simple array-based stack.
+Після запуску відкрийте `http://localhost:8080/`.
 
-### LAB 2: Linked Lists
-- **Purpose**: Understand linked lists and how they differ from arrays.
-- **Key Concepts Covered**: Singly linked lists, doubly linked lists, circular linked lists.
-- **Example Usage**: Implementing a linked list from scratch.
+## Примітка
 
-### LAB 3: Stacks
-- **Purpose**: Explore the stack data structure and its operations.
-- **Key Concepts Covered**: Last In First Out (LIFO), push, pop, peek operations.
-- **Example Usage**: Using a stack to reverse a string.
-
-### LAB 4: Queues
-- **Purpose**: Understand queues and their applications.
-- **Key Concepts Covered**: First In First Out (FIFO), enqueue, dequeue operations.
-- **Example Usage**: Implementing a queue for task scheduling.
-
-
-## Contribution Guidelines
-
-If you would like to contribute to this repository, please make sure to follow the standard process:
-1. Fork the repository.
-2. Create a new branch for your feature or fix.
-3. Make your changes and commit them.
-4. Push your branch and open a pull request.
+У репозиторії збережено фактичний стан лабораторних проєктів без зайвих службових артефактів збірки та чернеток.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Проєкт поширюється за ліцензією MIT. Деталі — у файлі [LICENSE](LICENSE).

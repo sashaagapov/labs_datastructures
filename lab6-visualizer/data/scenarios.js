@@ -104,5 +104,13 @@ export const scenarioDefinitions = [
     topicKey: "rbInsert",
     quizKey: "rbInsert",
     codeKey: "rbInsert"
+  },
+  {
+    id: "rb-delete-fixup",
+    title: "Red-Black Tree — DeleteFixup (delete 10B)",
+    group: "Red-Black Tree",
+    topicKey: "rbDelete",
+    quizKey: "rbDelete",
+    codeKey: "rbDelete"
   }
 ];

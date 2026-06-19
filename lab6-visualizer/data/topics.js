@@ -106,5 +106,17 @@ export const topicDefinitions = [
     icon: "tree",
     scenarioIds: ["rb-insert-sequence"],
     customType: "rbInsert"
+  },
+  {
+    key: "rbDelete",
+    navGroup: "Red-Black Tree",
+    name: "Red-Black Tree — DeleteFixup",
+    shortName: "DeleteFixup",
+    description: "Видалення black-листка і покроковий DeleteFixup (case 4 для x зліва).",
+    badge: "1 сценарій",
+    accent: "#ef4444",
+    icon: "tree",
+    scenarioIds: ["rb-delete-fixup"],
+    customType: "rbDelete"
   }
 ];

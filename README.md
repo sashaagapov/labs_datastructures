@@ -1,41 +1,47 @@
-# Algorithms and Data Structures Labs
+# Algorithms and Data Structures: C# labs
 
-Навчальний репозиторій з лабораторними роботами з дисципліни АСД. Основна мова реалізації — C# (`.NET`), окремо для `LAB6` додано веб-візуалізатор для демонстрації дерев.
+Console projects for searching, string matching, linear data structures, and trees. Lab 6 also has a browser visualizer for walking through tree operations.
 
-## Структура
+## A concrete example
 
-- `LAB1` — задачі на масиви та порівняння підходів пошуку.
-- `LAB3` — консольний проєкт лабораторної роботи 3.
-- `LAB4` — дек, черга на стеках, стек на чергах, `SetOfStacks`, додаткові задачі.
-- `LAB5` — бінарні дерева: обходи, `TreeMinimum`, `TreeMaximum`, `TreePredecessor`, `TreeInsert`.
-- `LAB6` — BST, AVL та Red-Black Tree: пошук, вставка, видалення, повороти, демонстраційні меню.
-- `lab6-visualizer` — статичний візуалізатор сценаріїв для тем з дерев.
+Lab 3's built-in case searches `abcabeabcabcabd` for `abcabd`. A console run of the comparison option produced:
 
-## Збірка
-
-Потрібен встановлений .NET SDK.
-
-```bash
-dotnet build LAB1/labs_datastructures.sln
-dotnet build LAB3/LAB3.csproj
-dotnet build LAB4/LAB4.csproj
-dotnet build LAB5/LAB5.csproj
-dotnet build LAB6/LAB_6.csproj
+```text
+SimpleSearch comparisons: 27
+KMP comparisons:          17
+Simple search: found at index 9
+KMP:           found at index 9
 ```
 
-## Візуалізатор LAB6
+These are the counts printed for that fixed input by [Lab 3's source](LAB3/Program.cs), not runtime benchmarks. The excerpt translates the program's Ukrainian labels; the values are from the run.
+
+The [worked examples for Labs 1, 3, 4, 5, and 6](docs/WORKED_EXAMPLES.md) show source-derived inputs and results, clearly labeled as examples rather than captured runs. The [Lab 6 visualizer](lab6-visualizer/index.html) shows operations step by step when served locally. Its [scenario definitions](lab6-visualizer/data/scenarios.js) and [topic list](lab6-visualizer/data/topics.js) can be inspected on GitHub without starting a server.
+
+## Find a lab or feature
+
+| Lab | Direct paths |
+| --- | --- |
+| [1 — search methods](LAB1/README.md) | [Configurable array search](LAB1/lab1_ds_finding_beta/Program.cs), [fixed-size comparison](LAB1/lab1_ds_maximum_beta/Program.cs), [repeated search](LAB1/lab1_ds_futuremain/Program.cs) |
+| [3 — substring search](LAB3/Program.cs) | Straightforward search, KMP and comparison counts in one console program |
+| [4 — linear structures](LAB4/Program.cs) | [Array deque](LAB4/MyDeque.cs), [queue using stacks](LAB4/MyQueueOnStacks.cs), [stack using queues](LAB4/MyStacksOnQueues.cs), [set of stacks](LAB4/SetOfStacks.cs), [bracket checking, queue merging and visible buildings](LAB4/ExtraTasks.cs) |
+| [5 — binary trees](LAB5/Menu.cs) | [Tree construction](LAB5/RecursiveTree.Insert.cs), [preorder/postorder](LAB5/RecursiveTree.Traversals.cs), [iterative inorder](LAB5/RecursiveTree.IterativeInOrder.cs), [minimum/maximum](LAB5/RecursiveTree.MinMax.cs), [predecessor](LAB5/RecursiveTree.Predecessor.cs) |
+| [6 — tree operations](LAB6/Menu.cs) | [BST search/delete/rotations](LAB6/Menu.Bst.cs), [AVL insert/search/delete and rotation demos](LAB6/Menu.Avl.cs), [red-black insert/delete demos](LAB6/Menu.RedBlack.cs), [interval-tree left rotation](LAB6/IntervalTreeDemo.cs), [browser visualizer](lab6-visualizer/README.md) |
+
+The repository contains Labs 1 and 3–6; there is no Lab 2 project here. Most C# console prompts are in Ukrainian. Lab 6's console tree menus are in English.
+
+## Run locally
+
+Install the .NET 10 SDK. From the repository root, run a project by its file path:
 
 ```bash
-cd lab6-visualizer
-python -m http.server 8080
+dotnet run --project LAB3/LAB3.csproj
+dotnet run --project LAB4/LAB4.csproj
+dotnet run --project LAB5/LAB5.csproj
+dotnet run --project LAB6/LAB_6.csproj
 ```
 
-Після запуску відкрийте `http://localhost:8080/`.
-
-## Примітка
-
-У репозиторії збережено фактичний стан лабораторних проєктів без зайвих службових артефактів збірки та чернеток.
+Lab 1 has three separate projects; see its [project guide](LAB1/README.md). To open the visualizer, follow the [visualizer instructions](lab6-visualizer/README.md).
 
 ## License
 
-Проєкт поширюється за ліцензією MIT. Деталі — у файлі [LICENSE](LICENSE).
+[MIT](LICENSE).

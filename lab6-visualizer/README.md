@@ -1,23 +1,16 @@
-# LAB6 Tree Visualizer
+# Lab 6 tree visualizer
 
-Допоміжний статичний візуалізатор для лабораторної роботи 6 з деревами.
+A browser companion to the [C# tree lab](../LAB6/Menu.cs). It presents predefined tree scenarios and interactive explanations; the [topic list](data/topics.js) and [scenarios](data/scenarios.js) are readable on GitHub.
 
-## Запуск
+The topics cover BST search, deletion and transplant; left and right rotations; AVL balancing cases; and red-black insertion and deletion. The interface offers Learn, Trace, Defense and Debug modes. This page is separate from the C# console project.
+
+To use it locally, serve this directory over HTTP and open the shown address:
 
 ```bash
 cd lab6-visualizer
 python -m http.server 8080
 ```
 
-Після запуску відкрийте:
+Open `http://localhost:8080/`. A local server is needed because the page loads JavaScript modules.
 
-`http://localhost:8080/`
-
-## Що є у візуалізаторі
-
-- BST: пошук, видалення, повороти.
-- AVL: вставка, LL / RR / LR / RL сценарії.
-- Red-Black Tree: вставка та `DeleteFixup` demo.
-- Режими `Learn`, `Trace`, `Defense`, `Debug`.
-
-Візуалізатор є допоміжною частиною до `LAB6` і не потрібен для збірки C# проєктів.
+[Back to all labs](../README.md).

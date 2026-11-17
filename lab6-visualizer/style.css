@@ -632,3 +632,34 @@ body.mode-learn .explanation-text { font-size: 18px; min-height: 80px; }
 
 /* Mode-aware variable card visibility */
 body.mode-learn #variablesCard .variable-row.extra { display: none; }
+
+/* Keep controls and panels usable at the width left by the topic sidebar. */
+@media (max-width: 1500px) {
+  .top-bar-left { flex-basis: 100%; }
+  .top-controls { flex-basis: 100%; }
+  .workspace { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .workspace .tree-panel { grid-column: 1 / -1; }
+  .tree-panel .panel-header { flex-wrap: wrap; }
+  .tree-panel .legend { justify-content: flex-start; }
+  .explanation-header { flex-wrap: wrap; }
+}
+
+@media (max-width: 1100px) {
+  .workspace, body.mode-learn .workspace, body.mode-defense .workspace { grid-template-columns: minmax(0, 1fr); }
+  .top-controls { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 760px) {
+  .home-screen { padding: 22px 16px; }
+  .home-title { font-size: 58px; }
+  .topic-grid { grid-template-columns: minmax(0, 1fr); }
+  .visualizer-screen { grid-template-columns: minmax(0, 1fr); }
+  .sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
+  #sidebarNav { max-height: 180px; overflow-y: auto; }
+  .visualizer-screen .app-shell { padding: 12px; }
+  .scenario-picker, .custom-section, .custom-row, .custom-row.three { min-width: 0; grid-template-columns: minmax(0, 1fr); }
+  .mode-switch { max-width: 100%; flex-wrap: wrap; }
+  .controls-bar { position: static; }
+  .controls-bar button { min-width: 0; flex: 1 1 40%; }
+  .step-counter { margin-left: 0; }
+}
